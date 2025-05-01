@@ -7,18 +7,16 @@ const axios = require('axios');
 
 dotenv.config();
 
-// Logfor debugging
+// Log for debugging
 console.log('USDA API KEY status:', process.env.USDA_API_KEY ? 'Key is set' : 'Key is missing');
 
 const app = express();
 
+// CORS configuration based on environment
 app.use(cors({
-    origin: [
-        'http://localhost:8080', 
-        'http://localhost:5173', 
-        'https://fxgbxbqxchhv-8080.na.app.codingrooms.com',
-        process.env.HEROKU_URL
-    ].filter(Boolean),
+    origin: process.env.NODE_ENV === 'production'
+        ? process.env.ALLOWED_ORIGINS?.split(',') || [process.env.HEROKU_URL]
+        : ['http://localhost:8080', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'X-User-Email']
@@ -125,111 +123,43 @@ app.use('/api', (err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong with the API!' });
 });
 
-// Serve static files from the React app
-// This should come AFTER API routes
-// Try multiple potential build output paths based on environment
-let clientPath;
-const possiblePaths = [
-    path.resolve(__dirname, '../dist'),
-    path.resolve(process.cwd(), 'dist'),
-    '/usercode/dist',
-    path.resolve(__dirname, '../../dist'),
-    path.resolve(__dirname, '../src/dist'),
-    path.resolve(process.cwd(), 'src/dist'),
-    '/usercode/src/dist'
-];
-
-// Find the first path that exists
-for (const testPath of possiblePaths) {
+// Simplified static file serving for production
+if (process.env.NODE_ENV === 'production' || process.env.SERVE_STATIC === 'true') {
+    // In production, serve from the dist directory at project root
+    const clientPath = path.resolve(process.cwd(), 'dist');
+    console.log('Serving static files from:', clientPath);
+    
+    // Debug: List contents of current and dist directories
     try {
-        if (require('fs').existsSync(testPath)) {
-            clientPath = testPath;
-            console.log(`Found static files at: ${clientPath}`);
-            break;
-        }
+        console.log('Current directory:', process.cwd());
+        console.log('Current directory contents:', require('fs').readdirSync(process.cwd()));
+        console.log('Dist directory contents:', require('fs').readdirSync(clientPath));
     } catch (err) {
-        console.log(`Path ${testPath} not found or not accessible`);
+        console.error('Error listing directories:', err);
     }
-}
-
-if (!clientPath) {
-    console.error('WARNING: Could not find static files directory!');
-    console.error('Checked paths:', possiblePaths);
-    // Use default path as fallback
-    clientPath = path.resolve(__dirname, '../dist');
-    console.error(`Falling back to: ${clientPath}`);
-}
-
-// Attempt to list directory contents to help debug
-try {
-    const files = require('fs').readdirSync(process.cwd());
-    console.log('Current directory contents:', files);
-} catch (err) {
-    console.error('Error listing current directory:', err);
-}
-
-// Serve the main build directory
-app.use(express.static(clientPath));
-
-// Also serve public directory and additional potential asset locations
-const publicPaths = [
-    path.resolve(__dirname, '../public'),
-    path.resolve(process.cwd(), 'public'),
-    '/usercode/public',
-    path.resolve(__dirname, '../src/public'),
-    path.resolve(process.cwd(), 'src/public')
-];
-
-// Serve each potential public directory
-for (const publicPath of publicPaths) {
-    try {
-        if (require('fs').existsSync(publicPath)) {
-            console.log(`Serving public assets from: ${publicPath}`);
-            app.use(express.static(publicPath));
+    
+    // Serve the main build directory
+    app.use(express.static(clientPath));
+    
+    // Serve assets directory from build output
+    app.use('/assets', express.static(path.join(clientPath, 'assets')));
+    
+    // For any non-API routes, send the React app
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api/')) {
+            return next();
         }
-    } catch (err) {
-        // Path doesn't exist, skip
-    }
-}
-
-// Also serve assets directory from build output
-app.use('/assets', express.static(path.join(clientPath, 'assets')));
-
-// For any non-API routes, send the React app
-// This must be placed AFTER all API routes
-app.get('*', (req, res, next) => {
-    // Skip API routes - they should be handled by their own handlers
-    if (req.path.startsWith('/api/')) {
-        return next();
-    }
-
-    console.log(`Attempting to serve index.html for path: ${req.path}`);
-
-    // Try to find index.html in various locations
-    const possibleIndexPaths = [
-        path.resolve(clientPath, 'index.html'),
-        path.resolve(process.cwd(), 'dist/index.html'),
-        path.resolve(process.cwd(), 'src/index.html'),
-        '/usercode/dist/index.html',
-        '/usercode/src/index.html',
-        path.resolve(process.cwd(), 'src/dist/index.html'),
-        '/usercode/src/dist/index.html'
-    ];
-
-    for (const indexPath of possibleIndexPaths) {
-        try {
-            if (require('fs').existsSync(indexPath)) {
-                console.log(`Found index.html at: ${indexPath}`);
-                return res.sendFile(indexPath);
-            }
-        } catch (err) {
-            console.log(`Index not found at ${indexPath}`);
+        const indexPath = path.join(clientPath, 'index.html');
+        if (require('fs').existsSync(indexPath)) {
+            res.sendFile(indexPath);
+        } else {
+            console.error('index.html not found at:', indexPath);
+            res.status(404).send('Could not find index.html');
         }
-    }
-
-    // If we get here, we couldn't find index.html
-    res.status(404).send('Could not find index.html in any expected location');
-});
+    });
+} else {
+    console.log('Static file serving disabled - development mode');
+}
 
 // General error handling
 app.use((err, req, res, next) => {
@@ -237,15 +167,17 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something went wrong!');
 });
 
-// Start server
+// Start server with dynamic port
 const PORT = process.env.PORT || 8080;
 
 const startServer = async () => {
     try {
         const server = app.listen(PORT, () => {
-            console.log(`🚀 Integrated server running on port ${PORT}`);
-            console.log(`API routes accessible at http://localhost:${PORT}/api/`);
-            console.log(`Frontend accessible at http://localhost:${PORT}/`);
+            console.log(`🚀 Server running on port ${PORT}`);
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`API routes accessible at http://localhost:${PORT}/api/`);
+                console.log(`Frontend accessible at http://localhost:${PORT}/`);
+            }
         });
 
         server.on('error', (error) => {

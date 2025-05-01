@@ -52,7 +52,7 @@ export default defineConfig({
         }
     },
     build: {
-        outDir: 'dist', // Output build files to dist at root
+        outDir: '../dist', // Output build files to dist at project root
         emptyOutDir: true, // Ensure clean build
         rollupOptions: {
             output: {
