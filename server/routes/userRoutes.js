@@ -1,8 +1,8 @@
-const express = require('express');
-const authMiddleware = require('../middleware/auth');
-const User = require('../models/User'); // <-- Change to User model
+import { Router } from 'express';
+import authMiddleware from '../middleware/auth.js';
+import User from '../models/User.js'; // <-- Change to User model
 
-const router = express.Router();
+const router = Router();
 
 // Default configuration values (used if user doc lacks them)
 const DEFAULT_CONFIG_VALUES = {
@@ -102,4 +102,4 @@ router.put('/config', authMiddleware, async (req, res) => {
     }
 });
 
-module.exports = router; 
+export default router; 

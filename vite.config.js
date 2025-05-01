@@ -2,39 +2,42 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
+// Get environment variables with fallbacks
+const PORT = process.env.PORT || 8080
+const API_URL = process.env.NODE_ENV === 'production' 
+    ? '' // Empty string means same origin in production
+    : `http://localhost:${PORT}`
+
 export default defineConfig({
     plugins: [react()],
-    root: 'src', // Tell Vite that index.html is in src directory
-    publicDir: 'public', // Relative to the project root (where vite.config.js is)
+    root: 'src', // Set source root back to src
+    publicDir: resolve(__dirname, 'public'), // Use absolute path for publicDir
     resolve: {
         alias: {
-            '@': resolve(__dirname, 'src')
+            '@': resolve(__dirname, 'src') // Alias relative to project root
         }
     },
-    // Add top-level esbuild config again
     esbuild: {
         loader: 'jsx',
-        include: /src\/.*\.(js|jsx)$/, // Include both .js and .jsx in src
+        include: /src\/.*\.(js|jsx)$/,
         exclude: [],
     },
-    // Focus JSX handling within optimizeDeps for the dependency scan phase
     optimizeDeps: {
         esbuildOptions: {
             loader: {
-                '.js': 'jsx', // Keep this for dependency scanning too
+                '.js': 'jsx',
             },
         },
     },
     server: {
-        host: '0.0.0.0',
-        port: 8080,
+        port: PORT,
+        host: process.env.NODE_ENV === 'production' ? 'localhost' : '0.0.0.0',
         hmr: {
-            // Avoid HMR conflicts
-            port: 24678
+            port: process.env.HMR_PORT || 24678
         },
-        proxy: {
+        proxy: process.env.NODE_ENV === 'production' ? {} : {
             '/api': {
-                target: 'http://localhost:8080',
+                target: API_URL,
                 changeOrigin: true,
                 secure: false,
                 configure: (proxy, _options) => {
@@ -52,8 +55,9 @@ export default defineConfig({
         }
     },
     build: {
-        outDir: '../dist', // Output build files to dist at project root
-        emptyOutDir: true, // Ensure clean build
+        outDir: resolve(__dirname, 'dist'), // Use absolute path for outDir
+        emptyOutDir: true,
+        // No need for rollupOptions.input when root is 'src'
         rollupOptions: {
             output: {
                 manualChunks: {

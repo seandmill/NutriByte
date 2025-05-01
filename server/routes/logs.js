@@ -1,8 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const FoodLog = require('../models/FoodLog');
-const auth = require('../middleware/auth');
-const mongoose = require('mongoose');
+import { Router } from 'express';
+import mongoose from 'mongoose';
+const { connection } = mongoose;
+import FoodLog from '../models/FoodLog.js';
+import auth from '../middleware/auth.js';
+
+const router = Router();
 
 // Helper function to parse ingredients
 const parseIngredients = (ingredientsString) => {
@@ -398,7 +400,7 @@ router.post('/directquery', auth, async (req, res) => {
         const filter = { userId: req.user._id };
 
         // Get collection from mongoose connection
-        const db = mongoose.connection.db;
+        const db = connection.db;
         const collection = db.collection(query.collection);
 
         // Run the query with the user filter
@@ -411,4 +413,4 @@ router.post('/directquery', auth, async (req, res) => {
     }
 });
 
-module.exports = router; 
+export default router; 

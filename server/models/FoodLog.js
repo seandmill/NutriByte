@@ -1,8 +1,9 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+const { Schema, model } = mongoose;
 
-const foodLogSchema = new mongoose.Schema({
+const foodLogSchema = new Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
@@ -75,7 +76,7 @@ const foodLogSchema = new mongoose.Schema({
   // Store nutrients with their IDs
   nutrients: {
     type: Map,
-    of: mongoose.Schema.Types.Mixed,
+    of: Schema.Types.Mixed,
     default: {}
   },
   // Keep specific macro fields for easier querying
@@ -101,4 +102,4 @@ const foodLogSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('FoodLog', foodLogSchema); 
+export default model('FoodLog', foodLogSchema); 

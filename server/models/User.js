@@ -1,12 +1,13 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+const { Schema, model } = mongoose;
 
 // Sub-schema for nutrient overrides (remains the same)
-const NutrientOverrideSchema = new mongoose.Schema({
+const NutrientOverrideSchema = new Schema({
     value: { type: Number, required: true },
     unit: { type: String, required: true }
 }, { _id: false });
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
   email: {
     type: String,
     required: true,
@@ -62,4 +63,4 @@ const userSchema = new mongoose.Schema({
   // -----------------------------------
 });
 
-module.exports = mongoose.model('User', userSchema); 
+export default model('User', userSchema); 

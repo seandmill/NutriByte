@@ -1,11 +1,13 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
-const axios = require('axios');
+import express, { json } from 'express';
+import mongoose from 'mongoose';
+const { connect } = mongoose;
+import cors from 'cors';
+import { config } from 'dotenv';
+import { resolve, join } from 'path';
+import axios from 'axios';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 
-dotenv.config();
+config();
 
 // Log for debugging
 console.log('USDA API KEY status:', process.env.USDA_API_KEY ? 'Key is set' : 'Key is missing');
@@ -21,7 +23,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'X-User-Email']
 }));
-app.use(express.json());
+app.use(json());
 
 // Add request logging
 app.use((req, res, next) => {
@@ -29,25 +31,26 @@ app.use((req, res, next) => {
     next();
 });
 
+// Routes
+import authRoutes from './routes/auth.js';
+import logsRoutes from './routes/logs.js';
+import userRoutes from './routes/userRoutes.js';
+import User from './models/User.js';
+import FoodLog from './models/FoodLog.js';
+
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
+connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('✅ Connected to MongoDB');
-
-        // Verify User model exists
-        const User = require('./models/User');
         console.log('✅ User model loaded');
-
-        // Verify FoodLog model exists
-        const FoodLog = require('./models/FoodLog');
         console.log('✅ FoodLog model loaded');
     })
     .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/logs', require('./routes/logs'));
-app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/auth', authRoutes);
+app.use('/api/logs', logsRoutes);
+app.use('/api/users', userRoutes);
 
 // Handle API JavaScript file requests that should be modules
 app.get('/api/:apiFile.js', (req, res) => {
@@ -59,11 +62,9 @@ app.get('/api/:apiFile.js', (req, res) => {
 // Add proxy for USDA API requests
 app.get('/api/foods/search', async (req, res) => {
     try {
-        // Ensure API key is available - Modify this with your actual key if needed
         const apiKey = process.env.USDA_API_KEY;
         console.log('Using API Key for food search:', apiKey.substring(0, 3) + '...');
 
-        // Construct request parameters including the API key
         const requestParams = {
             ...req.query,
             api_key: apiKey
@@ -89,11 +90,9 @@ app.get('/api/foods/search', async (req, res) => {
 
 app.get('/api/food/:fdcId', async (req, res) => {
     try {
-        // Ensure API key is available - Modify this with your actual key if needed
         const apiKey = process.env.USDA_API_KEY;
         console.log('Using API Key for food detail:', apiKey.substring(0, 3) + '...');
 
-        // Construct request parameters including the API key
         const requestParams = {
             ...req.query,
             api_key: apiKey
@@ -125,32 +124,45 @@ app.use('/api', (err, req, res, next) => {
 
 // Simplified static file serving for production
 if (process.env.NODE_ENV === 'production' || process.env.SERVE_STATIC === 'true') {
-    // In production, serve from the dist directory at project root
-    const clientPath = path.resolve(process.cwd(), 'dist');
+    const clientPath = resolve(process.cwd(), 'dist');
     console.log('Serving static files from:', clientPath);
     
-    // Debug: List contents of current and dist directories
+    // Debug: List contents of current and dist directories using readdirSync
     try {
         console.log('Current directory:', process.cwd());
-        console.log('Current directory contents:', require('fs').readdirSync(process.cwd()));
-        console.log('Dist directory contents:', require('fs').readdirSync(clientPath));
+        console.log('Current directory contents:', readdirSync(process.cwd()));
+        if (existsSync(clientPath)) {
+            console.log('Dist directory contents:', readdirSync(clientPath));
+        } else {
+            console.log('Dist directory does not exist yet.');
+        }
     } catch (err) {
         console.error('Error listing directories:', err);
     }
     
-    // Serve the main build directory
+    // Serve the main build directory (handles index.html and root assets like images)
     app.use(express.static(clientPath));
     
-    // Serve assets directory from build output
-    app.use('/assets', express.static(path.join(clientPath, 'assets')));
+    // Serve assets directory specifically (handles CSS, JS chunks, etc.)
+    // Note: This might be redundant if express.static(clientPath) already handles it, 
+    // but explicitly adding it can sometimes help with pathing issues.
+    app.use('/assets', express.static(join(clientPath, 'assets')));
     
-    // For any non-API routes, send the React app
+    // For any non-API routes, send the React app's index.html
     app.get('*', (req, res, next) => {
+        // Skip API routes
         if (req.path.startsWith('/api/')) {
             return next();
         }
-        const indexPath = path.join(clientPath, 'index.html');
-        if (require('fs').existsSync(indexPath)) {
+        // Skip requests that look like files (have an extension)
+        if (/\/[^\\/\\.]+\\.[^\\/\\.]+$/.test(req.path)) {
+             console.log(`Skipping file-like path for SPA fallback: ${req.path}`);
+             return next(); // Let static middleware handle or 404
+        }
+        
+        const indexPath = join(clientPath, 'index.html');
+        if (existsSync(indexPath)) {
+            console.log(`SPA Fallback: Serving index.html for path: ${req.path}`);
             res.sendFile(indexPath);
         } else {
             console.error('index.html not found at:', indexPath);

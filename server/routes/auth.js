@@ -1,6 +1,7 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
+import { Router } from 'express';
+import User from '../models/User.js';
+
+const router = Router();
 
 // Login/Register with email
 router.post('/login', async (req, res) => {
@@ -61,4 +62,4 @@ router.get('/verify', async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 
