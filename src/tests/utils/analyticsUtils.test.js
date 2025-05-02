@@ -169,7 +169,7 @@ describe('analyticsUtils', () => {
        const avgCalciumExtended = calculateDailyAverage(sampleLogs, '1087', 'consumed', startDate, endDateExtended, false);
        // Total = 150 (log1) + 200 (log2) + 100 (log3) + 80 (log6) = 530
        // Avg = 530 / 4 days = 132.5
-       expect(avgCalciumExtended).toBe(106);
+       expect(avgCalciumExtended).toBe(132.5);
 
     });
 
