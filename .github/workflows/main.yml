@@ -39,5 +39,3 @@ jobs:
           usedocker: false
           stack: "heroku-24"
           procfile: "web: node server/integrated.js"
-        env:
-          HD_NODE_ENV: "production"
