@@ -15,37 +15,6 @@ export const calculateDailyAverage = (logs, nutrientId, logType = 'consumed', st
   // Filter logs by type
   const filteredLogs = logs.filter(log => log.logType === logType);
   
-  // Special debug for minerals - particularly calcium
-  if (nutrientId === '1087') { // Calcium
-    console.log(`----- Debug for Calcium (${nutrientId}) -----`);
-    console.log(`Found ${filteredLogs.length} logs for type ${logType}`);
-    
-    filteredLogs.forEach((log, idx) => {
-      console.log(`Log ${idx} nutrient keys:`, log.nutrients ? Object.keys(log.nutrients) : 'No nutrients object');
-      
-      if (log.nutrients) {
-        // Log if we have calcium in this entry
-        const hasDirectKey = Object.prototype.hasOwnProperty.call(log.nutrients, '1087');
-        console.log(`Has direct calcium key: ${hasDirectKey}`);
-        
-        if (hasDirectKey) {
-          console.log(`Calcium value:`, log.nutrients['1087']);
-          console.log(`Calcium value type:`, typeof log.nutrients['1087']);
-          
-          if (typeof log.nutrients['1087'] === 'object') {
-            console.log(`Calcium value.value:`, log.nutrients['1087'].value);
-            console.log(`Calcium parsed value:`, parseFloat(log.nutrients['1087'].value));
-          }
-        }
-      }
-      
-      // Also check for direct calcium property
-      if (log.calcium !== undefined) {
-        console.log(`Direct calcium property:`, log.calcium);
-      }
-    });
-  }
-  
   if (!filteredLogs.length) return 0;
   
   // Calculate days in range
@@ -61,72 +30,68 @@ export const calculateDailyAverage = (logs, nutrientId, logType = 'consumed', st
   }
   
   // Sum up nutrient values
-  const total = filteredLogs.reduce((sum, log, idx) => {
-    let valueFound = false;
+  const total = filteredLogs.reduce((sum, log) => {
+    // Marking valueFound with underscore since it's used mainly for debugging
+    let _valueFound = false;
     let valueAdded = 0;
     
     // First try direct properties on the log object itself
     // This ensures backward compatibility
     if (nutrientId === '1008' && log.calories !== undefined) {
       valueAdded = parseFloat(log.calories) || 0;
-      valueFound = true;
-      if (nutrientId === '1087') console.log(`Log ${idx}: Found via calories property: ${valueAdded}`);
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1003' && log.protein !== undefined) {
       valueAdded = parseFloat(log.protein) || 0;
-      valueFound = true;
-      if (nutrientId === '1087') console.log(`Log ${idx}: Found via protein property: ${valueAdded}`);
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1004' && log.fat !== undefined) {
       valueAdded = parseFloat(log.fat) || 0;
-      valueFound = true;
-      if (nutrientId === '1087') console.log(`Log ${idx}: Found via fat property: ${valueAdded}`);
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1005' && log.carbs !== undefined) {
       valueAdded = parseFloat(log.carbs) || 0;
-      valueFound = true;
-      if (nutrientId === '1087') console.log(`Log ${idx}: Found via carbs property: ${valueAdded}`);
+      _valueFound = true;
       return sum + valueAdded;
     }
     
     // Check minerals in direct properties
     if (nutrientId === '1087' && log.calcium !== undefined) {
       valueAdded = parseFloat(log.calcium) || 0;
-      valueFound = true;
-      if (nutrientId === '1087') console.log(`Log ${idx}: Found via direct calcium property: ${valueAdded}`);
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1089' && log.iron !== undefined) {
       valueAdded = parseFloat(log.iron) || 0;
-      valueFound = true;
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1090' && log.magnesium !== undefined) {
       valueAdded = parseFloat(log.magnesium) || 0;
-      valueFound = true;
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1091' && log.phosphorus !== undefined) {
       valueAdded = parseFloat(log.phosphorus) || 0;
-      valueFound = true;
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1092' && log.potassium !== undefined) {
       valueAdded = parseFloat(log.potassium) || 0;
-      valueFound = true;
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1093' && log.sodium !== undefined) {
       valueAdded = parseFloat(log.sodium) || 0;
-      valueFound = true;
+      _valueFound = true;
       return sum + valueAdded;
     }
     if (nutrientId === '1095' && log.zinc !== undefined) {
       valueAdded = parseFloat(log.zinc) || 0;
-      valueFound = true;
+      _valueFound = true;
       return sum + valueAdded;
     }
     
@@ -138,14 +103,12 @@ export const calculateDailyAverage = (logs, nutrientId, logType = 'consumed', st
       if (log.nutrients[strId]) {
         if (typeof log.nutrients[strId] === 'object' && log.nutrients[strId].value !== undefined) {
           valueAdded = parseFloat(log.nutrients[strId].value) || 0;
-          valueFound = true;
-          if (nutrientId === '1087') console.log(`Log ${idx}: Found via direct object access with string key: ${valueAdded}`);
+          _valueFound = true;
           return sum + valueAdded;
         } else if (typeof log.nutrients[strId] !== 'object') {
           // Direct match with scalar value
           valueAdded = parseFloat(log.nutrients[strId]) || 0;
-          valueFound = true;
-          if (nutrientId === '1087') console.log(`Log ${idx}: Found via direct scalar access: ${valueAdded}`);
+          _valueFound = true;
           return sum + valueAdded;
         }
       }
@@ -155,13 +118,11 @@ export const calculateDailyAverage = (logs, nutrientId, logType = 'consumed', st
       if (log.nutrients[numId]) {
         if (typeof log.nutrients[numId] === 'object' && log.nutrients[numId].value !== undefined) {
           valueAdded = parseFloat(log.nutrients[numId].value) || 0;
-          valueFound = true;
-          if (nutrientId === '1087') console.log(`Log ${idx}: Found via direct object access with number key: ${valueAdded}`);
+          _valueFound = true;
           return sum + valueAdded;
         } else if (typeof log.nutrients[numId] !== 'object') {
           valueAdded = parseFloat(log.nutrients[numId]) || 0;
-          valueFound = true;
-          if (nutrientId === '1087') console.log(`Log ${idx}: Found via direct scalar access with number key: ${valueAdded}`);
+          _valueFound = true;
           return sum + valueAdded;
         }
       }
@@ -172,8 +133,7 @@ export const calculateDailyAverage = (logs, nutrientId, logType = 'consumed', st
         if (value && typeof value === 'object') {
           if (value.id === strId || value.id === numId) {
             valueAdded = parseFloat(value.value || value.amount) || 0;
-            valueFound = true;
-            if (nutrientId === '1087') console.log(`Log ${idx}: Found via object ID match: ${valueAdded}`);
+            _valueFound = true;
             return sum + valueAdded;
           }
           
@@ -181,8 +141,7 @@ export const calculateDailyAverage = (logs, nutrientId, logType = 'consumed', st
           const metadata = NUTRIENT_METADATA[numId];
           if (metadata && value.name === metadata.name) {
             valueAdded = parseFloat(value.value || value.amount) || 0;
-            valueFound = true;
-            if (nutrientId === '1087') console.log(`Log ${idx}: Found via name match: ${valueAdded}`);
+            _valueFound = true;
             return sum + valueAdded;
           }
         }
@@ -198,23 +157,13 @@ export const calculateDailyAverage = (logs, nutrientId, logType = 'consumed', st
       
       if (nutrient) {
         valueAdded = parseFloat(nutrient.value || nutrient.amount) || 0;
-        valueFound = true;
-        if (nutrientId === '1087') console.log(`Log ${idx}: Found via nutrientsArray: ${valueAdded}`);
+        _valueFound = true;
         return sum + valueAdded;
       }
     }
     
-    if (nutrientId === '1087' && !valueFound) {
-      console.log(`Log ${idx}: No calcium value found in this log`);
-    }
-    
     return sum;
   }, 0);
-  
-  if (nutrientId === '1087') {
-    console.log(`Total calcium: ${total}, days: ${daysCount}, daily average: ${parseFloat((total / daysCount).toFixed(1))}`);
-  }
-  
   // Return either the total or the daily average based on showTotal parameter
   return parseFloat((showTotal ? total : total / daysCount).toFixed(1));
 };
@@ -237,46 +186,81 @@ export const getCalorieBreakdown = (logs, logType = 'consumed') => {
   let totalCarbs = 0;
   
   filteredLogs.forEach(log => {
-    // Check for nutrient in the nutrients map
+    let proteinFound = false;
+    let fatFound = false;
+    let carbsFound = false;
+
+    // Priority 1: Direct properties
+    if (log.protein !== undefined) {
+      totalProtein += parseFloat(log.protein) || 0;
+      proteinFound = true;
+    }
+    if (log.fat !== undefined) {
+      totalFat += parseFloat(log.fat) || 0;
+      fatFound = true;
+    }
+    if (log.carbs !== undefined) {
+      totalCarbs += parseFloat(log.carbs) || 0;
+      carbsFound = true;
+    }
+
+    // Priority 2: Check for nutrient in the nutrients map
     if (log.nutrients) {
       // Protein (ID: 1003)
-      if (log.nutrients['1003']) {
-        if (typeof log.nutrients['1003'] === 'object') {
+      if (!proteinFound && log.nutrients['1003']) {
+        if (typeof log.nutrients['1003'] === 'object' && log.nutrients['1003'].value !== undefined) {
           totalProtein += parseFloat(log.nutrients['1003'].value) || 0;
-        } else {
+        } else if (typeof log.nutrients['1003'] !== 'object') {
           totalProtein += parseFloat(log.nutrients['1003']) || 0;
         }
-      } else {
-        totalProtein += log.protein || 0;
+        proteinFound = true; // Mark as found even if value was 0 or unparseable
       }
-      
+
       // Fat (ID: 1004)
-      if (log.nutrients['1004']) {
-        if (typeof log.nutrients['1004'] === 'object') {
+      if (!fatFound && log.nutrients['1004']) {
+         if (typeof log.nutrients['1004'] === 'object' && log.nutrients['1004'].value !== undefined) {
           totalFat += parseFloat(log.nutrients['1004'].value) || 0;
-        } else {
+        } else if (typeof log.nutrients['1004'] !== 'object') {
           totalFat += parseFloat(log.nutrients['1004']) || 0;
         }
-      } else {
-        totalFat += log.fat || 0;
+        fatFound = true;
       }
-      
+
       // Carbs (ID: 1005)
-      if (log.nutrients['1005']) {
-        if (typeof log.nutrients['1005'] === 'object') {
+      if (!carbsFound && log.nutrients['1005']) {
+         if (typeof log.nutrients['1005'] === 'object' && log.nutrients['1005'].value !== undefined) {
           totalCarbs += parseFloat(log.nutrients['1005'].value) || 0;
-        } else {
+        } else if (typeof log.nutrients['1005'] !== 'object') {
           totalCarbs += parseFloat(log.nutrients['1005']) || 0;
         }
-      } else {
-        totalCarbs += log.carbs || 0;
+        carbsFound = true;
       }
-    } else {
-      // Fallback to specific nutrient fields
-      totalProtein += log.protein || 0;
-      totalFat += log.fat || 0;
-      totalCarbs += log.carbs || 0;
     }
+
+    // Priority 3: Check nutrientsArray (legacy format)
+     if (Array.isArray(log.nutrientsArray)) {
+        if (!proteinFound) {
+          const proteinNutrient = log.nutrientsArray.find(n => n.id === '1003' || n.id === 1003);
+          if (proteinNutrient) {
+            totalProtein += parseFloat(proteinNutrient.value || proteinNutrient.amount) || 0;
+            proteinFound = true;
+          }
+        }
+        if (!fatFound) {
+           const fatNutrient = log.nutrientsArray.find(n => n.id === '1004' || n.id === 1004);
+           if (fatNutrient) {
+             totalFat += parseFloat(fatNutrient.value || fatNutrient.amount) || 0;
+             fatFound = true;
+           }
+        }
+        if (!carbsFound) {
+          const carbNutrient = log.nutrientsArray.find(n => n.id === '1005' || n.id === 1005);
+          if (carbNutrient) {
+            totalCarbs += parseFloat(carbNutrient.value || carbNutrient.amount) || 0;
+            carbsFound = true;
+          }
+        }
+     }
   });
   
   // Calculate calories from each macronutrient
@@ -324,54 +308,79 @@ export const getTimeSeriesData = (logs, nutrientId, logType = 'consumed') => {
     // Sum nutrient value for the day
     let dailyValue = 0;
     dailyLogs.forEach(log => {
-      // Check for direct nutrient value in specific properties
-      if (nutrientId === '1008' && log.calories !== undefined) {
-        dailyValue += (parseFloat(log.calories) || 0);
-        return;
+      let valueFound = false;
+      let valueAdded = 0;
+
+      // Priority 1: Direct properties on the log object itself
+      const directPropValue = getDirectPropertyValue(log, nutrientId);
+      if (directPropValue !== undefined) {
+          valueAdded = parseFloat(directPropValue) || 0;
+          valueFound = true;
       }
-      if (nutrientId === '1003' && log.protein !== undefined) {
-        dailyValue += (parseFloat(log.protein) || 0);
-        return;
-      }
-      if (nutrientId === '1004' && log.fat !== undefined) {
-        dailyValue += (parseFloat(log.fat) || 0);
-        return;
-      }
-      if (nutrientId === '1005' && log.carbs !== undefined) {
-        dailyValue += (parseFloat(log.carbs) || 0);
-        return;
-      }
-      
-      // Check for nutrient in the nutrients map
-      if (log.nutrients) {
-        // Direct match with object value structure
-        if (log.nutrients[nutrientId] && typeof log.nutrients[nutrientId] === 'object' && log.nutrients[nutrientId].value !== undefined) {
-          dailyValue += (parseFloat(log.nutrients[nutrientId].value) || 0);
-          return;
-        }
-        
-        // Direct match with scalar value
-        if (log.nutrients[nutrientId] && typeof log.nutrients[nutrientId] !== 'object') {
-          dailyValue += (parseFloat(log.nutrients[nutrientId]) || 0);
-          return;
-        }
-        
-        // Try to find the nutrient in a different format
-        for (const [_, value] of Object.entries(log.nutrients)) {
-          // Match by nutrient ID in object
-          if (value && typeof value === 'object' && (value.id === nutrientId || value.id === parseInt(nutrientId))) {
-            dailyValue += (parseFloat(value.value) || 0);
-            return;
+
+      // Priority 2: Check for nutrient in the nutrients map
+      if (!valueFound && log.nutrients) {
+          const strId = nutrientId.toString();
+          const numId = parseInt(nutrientId);
+
+          // Direct match with object value structure - using string key
+          if (log.nutrients[strId]) {
+              if (typeof log.nutrients[strId] === 'object' && log.nutrients[strId].value !== undefined) {
+                  valueAdded = parseFloat(log.nutrients[strId].value) || 0;
+                  valueFound = true;
+              } else if (typeof log.nutrients[strId] !== 'object') {
+                  // Direct match with scalar value
+                  valueAdded = parseFloat(log.nutrients[strId]) || 0;
+                  valueFound = true;
+              }
           }
-          
-          // Match by nutrient name
-          const metadata = NUTRIENT_METADATA[parseInt(nutrientId)];
-          if (metadata && value && typeof value === 'object' && value.name === metadata.name) {
-            dailyValue += (parseFloat(value.value) || 0);
-            return;
+
+          // Try with number key if not found yet
+          if (!valueFound && log.nutrients[numId]) {
+              if (typeof log.nutrients[numId] === 'object' && log.nutrients[numId].value !== undefined) {
+                  valueAdded = parseFloat(log.nutrients[numId].value) || 0;
+                  valueFound = true;
+              } else if (typeof log.nutrients[numId] !== 'object') {
+                  valueAdded = parseFloat(log.nutrients[numId]) || 0;
+                  valueFound = true;
+              }
           }
-        }
+
+          // Try to find the nutrient in a different format within map if not found yet
+          if (!valueFound) {
+              for (const [_key, value] of Object.entries(log.nutrients)) {
+                  if (value && typeof value === 'object') {
+                      // Match by nutrient ID in object
+                      if (value.id === strId || value.id === numId) {
+                          valueAdded = parseFloat(value.value || value.amount) || 0;
+                          valueFound = true;
+                          break; // Found it
+                      }
+                      // Match by nutrient name (assuming NUTRIENT_METADATA is available/imported)
+                      // const metadata = NUTRIENT_METADATA[numId]; // Might need import
+                      // if (metadata && value.name === metadata.name) {
+                      //     valueAdded = parseFloat(value.value || value.amount) || 0;
+                      //     valueFound = true;
+                      //     break; // Found it
+                      // }
+                  }
+              }
+          }
       }
+
+      // Priority 3: Check if there's a nutrientsArray (legacy format)
+      if (!valueFound && Array.isArray(log.nutrientsArray)) {
+          const nutrient = log.nutrientsArray.find(n =>
+              n.id === nutrientId || n.id === parseInt(nutrientId)
+              // (n.name && NUTRIENT_METADATA[parseInt(nutrientId)] && n.name === NUTRIENT_METADATA[parseInt(nutrientId)].name) // Name matching needs import
+          );
+          if (nutrient) {
+              valueAdded = parseFloat(nutrient.value || nutrient.amount) || 0;
+              valueFound = true;
+          }
+      }
+
+      dailyValue += valueAdded; // Add the value found (or 0 if not found)
     });
     
     return {
@@ -398,18 +407,6 @@ export const getFilterOptions = (logs) => {
       foodCategories: [],
       ingredients: []
     };
-  }
-  
-  // Debug any logs with calcium data
-  const calciumLogs = logs.filter(log => 
-    log.nutrients && Object.keys(log.nutrients).includes('1087')
-  );
-  
-  console.log(`DEBUG: Found ${calciumLogs.length} logs with calcium data`);
-  if (calciumLogs.length > 0) {
-    console.log('DEBUG: Example calcium log:', JSON.stringify(calciumLogs[0], null, 2));
-    console.log('DEBUG: Calcium value:', calciumLogs[0].nutrients['1087']);
-    console.log('DEBUG: Calcium value type:', typeof calciumLogs[0].nutrients['1087']);
   }
   
   const options = {
@@ -461,4 +458,23 @@ export const getFilterOptions = (logs) => {
   options.ingredients.sort();
   
   return options;
+};
+
+// Helper function to get direct property value based on nutrientId
+const getDirectPropertyValue = (log, nutrientId) => {
+    switch (nutrientId.toString()) {
+        case '1008': return log.calories;
+        case '1003': return log.protein;
+        case '1004': return log.fat;
+        case '1005': return log.carbs;
+        case '1087': return log.calcium;
+        case '1089': return log.iron;
+        case '1090': return log.magnesium;
+        case '1091': return log.phosphorus;
+        case '1092': return log.potassium;
+        case '1093': return log.sodium;
+        case '1095': return log.zinc;
+        // Add other direct properties if they exist
+        default: return undefined;
+    }
 }; 

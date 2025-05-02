@@ -9,7 +9,10 @@ export default [
     files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      },
       parserOptions: {
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },
@@ -30,4 +33,28 @@ export default [
       ],
     },
   },
+  {
+    files: ['**/*.test.{js,jsx}', '**/tests/**/*.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        describe: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        it: 'readonly',
+        beforeAll: 'readonly',
+        beforeEach: 'readonly',
+        afterAll: 'readonly',
+        afterEach: 'readonly',
+        jest: 'readonly'
+      }
+    },
+    rules: {
+      'no-unused-vars': ['error', { 
+        varsIgnorePattern: '^_', 
+        argsIgnorePattern: '^_' 
+      }],
+      'no-undef': 'off'
+    }
+  }
 ]
