@@ -28,7 +28,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import {
   ExpandMore as ExpandMoreIcon,
   FilterList as FilterListIcon,
-  ShowChart as ShowChartIcon
+  ShowChart as ShowChartIcon,
+  FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
 import { 
   Chart as ChartJS, 
@@ -662,6 +663,99 @@ const AnalyticsDashboard = () => {
     setSelectedIngredients([]);
   };
   
+  // Handle CSV export
+  const handleExportCSV = () => {
+    // Get API URL using the same conditional logic as other API calls
+    const apiUrl = (() => {
+      const envUrl = import.meta.env.VITE_API_URL || '';
+      // If we're using a Vite dev server with a proxy, don't use the full URL
+      if (window.location.hostname === 'localhost' && window.location.port === '8080') {
+        return ''; // Use relative URLs to leverage the proxy
+      }
+      return envUrl; // Otherwise use the full URL from .env
+    })();
+    
+    // Prepare query params for the filtered data
+    const params = new URLSearchParams();
+    
+    // Add date range if selected
+    if (startDate) {
+      params.append('startDate', startDate.toISOString().split('T')[0]);
+    }
+    if (endDate) {
+      params.append('endDate', endDate.toISOString().split('T')[0]);
+    }
+    
+    // Add log type filter
+    params.append('logTypes', logType);
+    
+    // Add other filters if selected
+    if (selectedBrandOwners.length > 0) {
+      selectedBrandOwners.forEach(brand => {
+        params.append('brandOwners', brand);
+      });
+    }
+    
+    if (selectedBrandNames.length > 0) {
+      selectedBrandNames.forEach(brand => {
+        params.append('brandNames', brand);
+      });
+    }
+    
+    if (selectedFoodCategories.length > 0) {
+      selectedFoodCategories.forEach(category => {
+        params.append('foodCategories', category);
+      });
+    }
+    
+    if (selectedIngredients.length > 0) {
+      selectedIngredients.forEach(ingredient => {
+        params.append('ingredients', ingredient);
+      });
+    }
+    
+    // Construct the full URL with query parameters
+    const url = `${apiUrl}/api/logs/export/csv?${params.toString()}`;
+    
+    // Add auth header to URL
+    const headers = new Headers();
+    headers.append('X-User-Email', localStorage.getItem('userEmail'));
+    
+    // Create a temporary link element to trigger the download
+    fetch(url, {
+      headers,
+      method: 'GET',
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Export failed');
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        // Create a date string for the filename
+        const dateStr = new Date().toISOString().split('T')[0];
+        const filename = `nutribyte_food_log_${dateStr}.csv`;
+        
+        // Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      })
+      .catch(error => {
+        console.error('Error exporting data:', error);
+        alert('Failed to export data. Please try again.');
+      });
+  };
+  
   // Handle log type change
   const handleLogTypeChange = (event, newLogType) => {
     if (newLogType !== null) {
@@ -904,6 +998,23 @@ const AnalyticsDashboard = () => {
                       fullWidth
                     >
                       Reset Filters
+                    </Button>
+                  </Grid>
+                  
+                  {/* Export CSV Button */}
+                  <Grid item xs={12} sm={6} md={3} lg={1}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Export
+                    </Typography>
+                    <Button 
+                      variant="contained"
+                      size="small" 
+                      onClick={handleExportCSV}
+                      fullWidth
+                      startIcon={<FileDownloadIcon />}
+                      color="secondary"
+                    >
+                      CSV
                     </Button>
                   </Grid>
                   

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const { connection } = mongoose;
 import FoodLog from '../models/FoodLog.js';
 import auth from '../middleware/auth.js';
+import { Parser } from 'json2csv';
 
 const router = Router();
 
@@ -139,7 +140,7 @@ router.post('/', auth, async (req, res) => {
         res.status(201).json(log);
     } catch (error) {
         console.error('Error creating food log:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -163,7 +164,8 @@ router.put('/:id', auth, async (req, res) => {
         await log.save();
         res.json(log);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error updating log:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -181,7 +183,8 @@ router.delete('/:id', auth, async (req, res) => {
 
         res.json({ message: 'Log deleted' });
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error deleting log:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -410,6 +413,162 @@ router.post('/directquery', auth, async (req, res) => {
     } catch (error) {
         console.error('Direct query error:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Export analytics data as CSV
+router.get('/export/csv', auth, async (req, res) => {
+    try {
+        const {
+            startDate,
+            endDate,
+            brandOwners,
+            brandNames,
+            foodCategories,
+            ingredients,
+            logTypes
+        } = req.query;
+
+        // Build filter object
+        const filter = { userId: req.user._id };
+
+        // Date filtering
+        if (startDate || endDate) {
+            filter.logDate = {};
+
+            if (startDate) {
+                // Set start of day (midnight) in UTC for the start date
+                const start = new Date(startDate);
+                start.setUTCHours(0, 0, 0, 0);
+                filter.logDate.$gte = start;
+            }
+
+            if (endDate) {
+                // Set end of day (23:59:59.999) in UTC for the end date to include the full day
+                const end = new Date(endDate);
+                end.setUTCHours(23, 59, 59, 999);
+                filter.logDate.$lte = end;
+            }
+        }
+
+        // Brand owner filtering
+        if (brandOwners && brandOwners.length) {
+            filter.brandOwner = { $in: Array.isArray(brandOwners) ? brandOwners : [brandOwners] };
+        }
+
+        // Brand name filtering
+        if (brandNames && brandNames.length) {
+            filter.brandName = { $in: Array.isArray(brandNames) ? brandNames : [brandNames] };
+        }
+
+        // Food category filtering
+        if (foodCategories && foodCategories.length) {
+            filter.brandedFoodCategory = { $in: Array.isArray(foodCategories) ? foodCategories : [foodCategories] };
+        }
+
+        // Log type filtering
+        if (logTypes && logTypes.length) {
+            filter.logType = { $in: Array.isArray(logTypes) ? logTypes : [logTypes] };
+        }
+
+        // Ingredients filtering (more complex)
+        if (ingredients && ingredients.length) {
+            const ingredientsList = Array.isArray(ingredients) ? ingredients : [ingredients];
+
+            // Use $or to match either the full ingredients string or the parsed ingredients array
+            filter.$or = [
+                { ingredients: { $regex: ingredientsList.join('|'), $options: 'i' } },
+                { parsedIngredients: { $in: ingredientsList } }
+            ];
+        }
+
+        // Execute the query
+        const logs = await FoodLog.find(filter).sort({ logDate: 1 });
+
+        // Process logs for CSV export
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+
+        // Transform data for CSV export - flattening the structure
+        const flattenedLogs = logs.map(log => {
+            const logObj = log.toObject();
+            
+            // Format date as a string
+            const formattedDate = logObj.logDate ? new Date(logObj.logDate).toISOString().split('T')[0] : '';
+            
+            // Handle logType conversion for past preps
+            let logType = logObj.logType;
+            if (logType === 'prepped' && new Date(logObj.logDate) < today) {
+                logType = 'consumed (was prepped)';
+            }
+            
+            // Extract key nutrients (calories, protein, fat, carbs)
+            let calories = logObj.calories || 0;
+            let protein = logObj.protein || 0;
+            let fat = logObj.fat || 0;
+            let carbs = logObj.carbs || 0;
+            
+            // If we have nutrients map and not direct fields
+            if (logObj.nutrients) {
+                const nutrientsObj = logObj.nutrients instanceof Map
+                    ? Object.fromEntries(logObj.nutrients)
+                    : logObj.nutrients;
+                
+                // Try to extract from nutrients if direct fields are empty
+                calories = calories || parseFloat(nutrientsObj['1008']?.value || 0);
+                protein = protein || parseFloat(nutrientsObj['1003']?.value || 0);
+                fat = fat || parseFloat(nutrientsObj['1004']?.value || 0);
+                carbs = carbs || parseFloat(nutrientsObj['1005']?.value || 0);
+            }
+            
+            // Construct a flat object for CSV export
+            return {
+                Date: formattedDate,
+                Food: logObj.foodName,
+                Type: logType,
+                Serving: `${logObj.quantity} ${logObj.servingDescription || logObj.servingType || 'serving'}`,
+                Calories: calories.toFixed(1),
+                'Protein (g)': protein.toFixed(1),
+                'Fat (g)': fat.toFixed(1),
+                'Carbs (g)': carbs.toFixed(1),
+                Brand: logObj.brandName || '',
+                Category: logObj.brandedFoodCategory || '',
+                DataType: logObj.dataType || ''
+            };
+        });
+
+        // Define CSV fields
+        const fields = [
+            'Date',
+            'Food',
+            'Type',
+            'Serving',
+            'Calories',
+            'Protein (g)',
+            'Fat (g)',
+            'Carbs (g)',
+            'Brand',
+            'Category',
+            'DataType'
+        ];
+
+        // Generate filename with current date
+        const dateStr = new Date().toISOString().split('T')[0];
+        const filename = `nutribyte_food_log_${dateStr}.csv`;
+
+        // Generate CSV
+        const json2csvParser = new Parser({ fields });
+        const csv = json2csvParser.parse(flattenedLogs);
+
+        // Set headers for download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Send the CSV file
+        res.status(200).end(csv);
+    } catch (error) {
+        console.error('CSV export error:', error);
+        res.status(500).json({ message: 'Error generating CSV export', error: error.message });
     }
 });
 

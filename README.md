@@ -66,6 +66,7 @@ NutriByte/
 - **API Integration**: Custom modules to integrate with USDA's nutrition database
 - **Data Visualization**: Created visual representations of nutrition data using Chart.js
 - **Optimization**: Implemented image optimization, caching, and lazy loading
+- **Redis Caching**: Added Redis-based caching for USDA API responses to improve performance and reduce API calls
 
 ## Deployment Notes
 - The app is configured to run on a single port (8080) for ZyBooks compatibility

@@ -1,0 +1,31 @@
+{
+  "name": "NutriByte",
+  "description": "A nutrition tracking application that provides insights into dietary habits using USDA data",
+  "repository": "https://github.com/seandmill/NutriByte",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["node", "express", "react", "mongodb", "nutrition", "diet", "health"],
+  "addons": [
+    {
+      "plan": "heroku-redis:hobby-dev"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment for the application",
+      "value": "production"
+    },
+    "MONGODB_URI": {
+      "description": "MongoDB connection string",
+      "required": true
+    },
+    "USDA_API_KEY": {
+      "description": "API key for USDA Food Data Central API",
+      "required": true
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}

@@ -5,7 +5,9 @@ import cors from 'cors';
 import { config } from 'dotenv';
 import { resolve, join } from 'path';
 import axios from 'axios';
-import { readFileSync, existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
+import { initRedisClient } from './utils/redisClient.js';
+import { cacheMiddleware } from './middleware/cache.js';
 
 config();
 
@@ -44,6 +46,20 @@ connect(process.env.MONGODB_URI)
         console.log('✅ Connected to MongoDB');
         console.log('✅ User model loaded');
         console.log('✅ FoodLog model loaded');
+        
+        // Initialize Redis client after MongoDB is connected
+        initRedisClient()
+            .then(client => {
+                if (client && client.isReady) {
+                    console.log('✅ Redis caching enabled');
+                } else {
+                    console.warn('⚠️ Redis caching disabled - continuing without cache');
+                }
+            })
+            .catch(err => {
+                console.error('❌ Redis connection error:', err);
+                console.warn('⚠️ Continuing without Redis caching');
+            });
     })
     .catch(err => console.error('❌ MongoDB connection error:', err));
 
@@ -59,8 +75,8 @@ app.get('/api/:apiFile.js', (req, res) => {
     res.redirect('/');
 });
 
-// Add proxy for USDA API requests
-app.get('/api/foods/search', async (req, res) => {
+// Add proxy for USDA API requests with Redis caching (30 minute cache)
+app.get('/api/foods/search', cacheMiddleware(1800), async (req, res) => {
     try {
         const apiKey = process.env.USDA_API_KEY;
         console.log('Using API Key for food search:', apiKey.substring(0, 3) + '...');
@@ -88,7 +104,8 @@ app.get('/api/foods/search', async (req, res) => {
     }
 });
 
-app.get('/api/food/:fdcId', async (req, res) => {
+// Cache individual food details longer (1 day) since they change less frequently
+app.get('/api/food/:fdcId', cacheMiddleware(86400), async (req, res) => {
     try {
         const apiKey = process.env.USDA_API_KEY;
         console.log('Using API Key for food detail:', apiKey.substring(0, 3) + '...');
@@ -117,7 +134,7 @@ app.get('/api/food/:fdcId', async (req, res) => {
 });
 
 // Basic error handling middleware for API routes
-app.use('/api', (err, req, res, next) => {
+app.use('/api', (err, req, res) => {
     console.error('API Error:', err.stack);
     res.status(500).json({ message: 'Something went wrong with the API!' });
 });
@@ -155,7 +172,7 @@ if (process.env.NODE_ENV === 'production' || process.env.SERVE_STATIC === 'true'
             return next();
         }
         // Skip requests that look like files (have an extension)
-        if (/\/[^\\/\\.]+\\.[^\\/\\.]+$/.test(req.path)) {
+        if (/\/[^/]+\.[^/]+$/.test(req.path)) {
              console.log(`Skipping file-like path for SPA fallback: ${req.path}`);
              return next(); // Let static middleware handle or 404
         }
@@ -174,7 +191,7 @@ if (process.env.NODE_ENV === 'production' || process.env.SERVE_STATIC === 'true'
 }
 
 // General error handling
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
     console.error('General Error:', err.stack);
     res.status(500).send('Something went wrong!');
 });
