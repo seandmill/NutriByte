@@ -36,5 +36,8 @@ jobs:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "nutribyte-mill1300"
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: false
+          stack: "heroku-24"
+          procfile: "web: node server/integrated.js"
         env:
           HD_NODE_ENV: "production"
