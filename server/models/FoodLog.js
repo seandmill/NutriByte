@@ -1,105 +1,105 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const foodLogSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   foodId: {
     type: String,
-    required: true
+    required: true,
   },
   foodName: {
     type: String,
-    required: true
+    required: true,
   },
   // Base serving size in grams/ml
   servingSize: {
     type: Number,
-    required: true
+    required: true,
   },
   servingUnit: {
     type: String,
-    required: true
+    required: true,
   },
   // Enhanced serving information
   quantity: {
     type: Number,
-    default: 1
+    default: 1,
   },
   servingType: {
     type: String,
-    default: 'g' // Default to grams if no household measure
+    default: "g", // Default to grams if no household measure
   },
   servingAmount: {
     type: Number,
-    default: 1 // Default to 1 unit if not specified
+    default: 1, // Default to 1 unit if not specified
   },
   // Keep for UI purposes
   servingDescription: {
-    type: String
+    type: String,
   },
   // Food metadata
   dataType: {
-    type: String // e.g., "Branded", "Survey (FNDDS)", "Foundation", etc.
+    type: String, // e.g., "Branded", "Survey (FNDDS)", "Foundation", etc.
   },
   foodClass: {
-    type: String // e.g., "Branded"
+    type: String, // e.g., "Branded"
   },
   brandOwner: {
-    type: String
+    type: String,
   },
   brandName: {
-    type: String
+    type: String,
   },
   brandedFoodCategory: {
-    type: String
+    type: String,
   },
   ingredients: {
-    type: String // Full ingredients string
+    type: String, // Full ingredients string
   },
   // Parsed ingredients for allergen/dietary restriction filtering
   parsedIngredients: {
     type: [String], // Array of individual ingredients
-    default: []
+    default: [],
   },
   logType: {
     type: String,
-    enum: ['consumed', 'prepped', 'avoided'],
-    default: 'consumed'
+    enum: ["consumed", "prepped", "avoided"],
+    default: "consumed",
   },
   logDate: {
-    type: Date
+    type: Date,
   },
   // Store nutrients with their IDs
   nutrients: {
     type: Map,
     of: Schema.Types.Mixed,
-    default: {}
+    default: {},
   },
   // Keep specific macro fields for easier querying
   calories: {
     type: Number,
-    default: 0
+    default: 0,
   },
   protein: {
     type: Number,
-    default: 0
+    default: 0,
   },
   fat: {
     type: Number,
-    default: 0
+    default: 0,
   },
   carbs: {
     type: Number,
-    default: 0
+    default: 0,
   },
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-export default model('FoodLog', foodLogSchema); 
+export default model("FoodLog", foodLogSchema);

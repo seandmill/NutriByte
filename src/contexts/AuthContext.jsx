@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
 const AuthContext = createContext();
 
 // Simplified API URL - directly use /api for all environments
-const API_BASE = '/api';
+const API_BASE = "/api";
 
 export const useAuth = () => {
   return useContext(AuthContext);
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const email = localStorage.getItem('userEmail');
+    const email = localStorage.getItem("userEmail");
     if (email) {
       verifySession(email);
     } else {
@@ -26,12 +26,12 @@ export const AuthProvider = ({ children }) => {
   const verifySession = async (email) => {
     try {
       const response = await axios.get(`${API_BASE}/auth/verify`, {
-        headers: { 'X-User-Email': email }
+        headers: { "X-User-Email": email },
       });
       setUser(response.data.user);
     } catch (error) {
-      console.error('Session verification failed:', error);
-      localStorage.removeItem('userEmail');
+      console.error("Session verification failed:", error);
+      localStorage.removeItem("userEmail");
     } finally {
       setLoading(false);
     }
@@ -41,11 +41,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${API_BASE}/auth/login`, { email });
       setUser(response.data.user);
-      localStorage.setItem('userEmail', email);
+      localStorage.setItem("userEmail", email);
       return response.data.user;
     } catch (error) {
-      console.error('Login failed:', error);
-      throw new Error(error.response?.data?.message || 'Failed to log in. Please try again.');
+      console.error("Login failed:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to log in. Please try again."
+      );
     }
   };
 
@@ -53,17 +55,20 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${API_BASE}/auth/login`, userData);
       setUser(response.data.user);
-      localStorage.setItem('userEmail', userData.email);
+      localStorage.setItem("userEmail", userData.email);
       return response.data.user;
     } catch (error) {
-      console.error('Signup failed:', error);
-      throw new Error(error.response?.data?.message || 'Failed to create account. Please try again.');
+      console.error("Signup failed:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          "Failed to create account. Please try again."
+      );
     }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('userEmail');
+    localStorage.removeItem("userEmail");
   };
 
   const value = {
@@ -71,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
-    loading
+    loading,
   };
 
   return (
@@ -79,4 +84,4 @@ export const AuthProvider = ({ children }) => {
       {!loading && children}
     </AuthContext.Provider>
   );
-}; 
+};

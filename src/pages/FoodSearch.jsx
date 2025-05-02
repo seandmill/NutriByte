@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Container,
   TextField,
@@ -24,65 +24,86 @@ import {
   Switch,
   Chip,
   Button,
-  Stack
-} from '@mui/material';
-import { Search as SearchIcon, Compare as CompareIcon, Clear as ClearIcon, ShoppingCart as ShoppingCartIcon, Info as InfoIcon } from '@mui/icons-material';
-import { visuallyHidden } from '@mui/utils';
-import Layout from '../components/Layout';
-import { searchFoods } from '../api/foodApi';
-import { debounce } from '../utils/debounce';
-import { extractNutrients } from '../utils/nutrientUtils';
-import { useCompare, MAX_COMPARE_ITEMS } from '../contexts/CompareContext';
+  Stack,
+} from "@mui/material";
+import {
+  Search as SearchIcon,
+  Compare as CompareIcon,
+  Clear as ClearIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Info as InfoIcon,
+} from "@mui/icons-material";
+import { visuallyHidden } from "@mui/utils";
+import Layout from "../components/Layout";
+import { searchFoods } from "../api/foodApi";
+import { debounce } from "../utils/debounce";
+import { extractNutrients } from "../utils/nutrientUtils";
+import { useCompare, MAX_COMPARE_ITEMS } from "../contexts/CompareContext";
 
 // Table column headers configuration
 const headCells = [
-  { id: 'description', numeric: false, label: 'Description' },
-  { id: 'brandName', numeric: false, label: 'Brand' },
-  { id: 'foodCategory', numeric: false, label: 'Category' },
-  { id: 'servingSize', numeric: true, label: 'Serving Size' },
-  { id: 'protein', numeric: true, label: 'Protein (g)' },
-  { id: 'fat', numeric: true, label: 'Fat (g)' },
-  { id: 'carbs', numeric: true, label: 'Carbs (g)' },
-  { id: 'calories', numeric: true, label: 'Calories' },
+  { id: "description", numeric: false, label: "Description" },
+  { id: "brandName", numeric: false, label: "Brand" },
+  { id: "foodCategory", numeric: false, label: "Category" },
+  { id: "servingSize", numeric: true, label: "Serving Size" },
+  { id: "protein", numeric: true, label: "Protein (g)" },
+  { id: "fat", numeric: true, label: "Fat (g)" },
+  { id: "carbs", numeric: true, label: "Carbs (g)" },
+  { id: "calories", numeric: true, label: "Calories" },
 ];
 
 // Retailer configuration with their brand colors
 const RETAILERS = [
   {
-    name: 'Target',
-    color: '#CC0000',
-    buildUrl: (query) => `https://www.target.com/s?searchTerm=${encodeURIComponent(query)}`
+    name: "Target",
+    color: "#CC0000",
+    buildUrl: (query) =>
+      `https://www.target.com/s?searchTerm=${encodeURIComponent(query)}`,
   },
   {
-    name: 'Walmart',
-    color: '#0071CE',
-    buildUrl: (query) => `https://www.walmart.com/search?q=${encodeURIComponent(query)}`
+    name: "Walmart",
+    color: "#0071CE",
+    buildUrl: (query) =>
+      `https://www.walmart.com/search?q=${encodeURIComponent(query)}`,
   },
   {
-    name: 'Kroger',
-    color: '#E35205',
-    buildUrl: (query) => `https://www.kroger.com/search?query=${encodeURIComponent(query)}&searchType=default_search`
+    name: "Kroger",
+    color: "#E35205",
+    buildUrl: (query) =>
+      `https://www.kroger.com/search?query=${encodeURIComponent(
+        query
+      )}&searchType=default_search`,
   },
   {
-    name: 'H-E-B',
-    color: '#DC1C2C',
-    buildUrl: (query) => `https://www.heb.com/search?q=${encodeURIComponent(query)}`
+    name: "H-E-B",
+    color: "#DC1C2C",
+    buildUrl: (query) =>
+      `https://www.heb.com/search?q=${encodeURIComponent(query)}`,
   },
   {
-    name: 'Tom Thumb',
-    color: '#E31837',
-    buildUrl: (query) => `https://www.tomthumb.com/shop/search-results.html?q=${encodeURIComponent(query)}`
+    name: "Tom Thumb",
+    color: "#E31837",
+    buildUrl: (query) =>
+      `https://www.tomthumb.com/shop/search-results.html?q=${encodeURIComponent(
+        query
+      )}`,
   },
   {
     name: "Trader Joe's",
-    color: '#B50938',
-    buildUrl: (query) => `https://www.traderjoes.com/home/search?q=${encodeURIComponent(query)}&global=yes`
+    color: "#B50938",
+    buildUrl: (query) =>
+      `https://www.traderjoes.com/home/search?q=${encodeURIComponent(
+        query
+      )}&global=yes`,
   },
   {
-    name: 'Whole Foods',
-    color: '#004B3F',
-    buildUrl: (query) => `https://www.wholefoodsmarket.com/search?text=${encodeURIComponent(query)}`
-  }
+    name: "Whole Foods",
+    color: "#004B3F",
+    buildUrl: (query) =>
+      `https://www.wholefoodsmarket.com/search?text=${encodeURIComponent(
+        query
+      )}`,
+  },
 ];
 
 const RetailerQuickLinks = ({ searchQuery }) => {
@@ -93,12 +114,12 @@ const RetailerQuickLinks = ({ searchQuery }) => {
       <Typography variant="subtitle2" color="text.secondary" gutterBottom>
         Compare prices at retailers:
       </Typography>
-      <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', gap: '12px' }}>
+      <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", gap: "12px" }}>
         {RETAILERS.map((retailer) => (
           <Chip
             key={retailer.name}
             label={retailer.name}
-            icon={<ShoppingCartIcon sx={{ color: 'white' }} />}
+            icon={<ShoppingCartIcon sx={{ color: "white" }} />}
             component="a"
             href={retailer.buildUrl(searchQuery)}
             target="_blank"
@@ -106,12 +127,12 @@ const RetailerQuickLinks = ({ searchQuery }) => {
             clickable
             sx={{
               bgcolor: retailer.color,
-              color: 'white',
-              '&:hover': {
+              color: "white",
+              "&:hover": {
                 bgcolor: retailer.color,
-                filter: 'brightness(85%)',
-                color: 'white',
-              }
+                filter: "brightness(85%)",
+                color: "white",
+              },
             }}
           />
         ))}
@@ -121,7 +142,14 @@ const RetailerQuickLinks = ({ searchQuery }) => {
 };
 
 function EnhancedTableHead(props) {
-  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
+  const {
+    onSelectAllClick,
+    order,
+    orderBy,
+    numSelected,
+    rowCount,
+    onRequestSort,
+  } = props;
 
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
@@ -141,18 +169,18 @@ function EnhancedTableHead(props) {
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
-            align={headCell.numeric ? 'right' : 'left'}
+            align={headCell.numeric ? "right" : "left"}
             sortDirection={orderBy === headCell.id ? order : false}
           >
             <TableSortLabel
               active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
+              direction={orderBy === headCell.id ? order : "asc"}
               onClick={createSortHandler(headCell.id)}
             >
               {headCell.label}
               {orderBy === headCell.id ? (
                 <Box component="span" sx={visuallyHidden}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                  {order === "desc" ? "sorted descending" : "sorted ascending"}
                 </Box>
               ) : null}
             </TableSortLabel>
@@ -164,7 +192,8 @@ function EnhancedTableHead(props) {
 }
 
 function EnhancedTableToolbar(props) {
-  const { numSelected, totalHits, onCompare, onClearCompare, compareCount } = props;
+  const { numSelected, totalHits, onCompare, onClearCompare, compareCount } =
+    props;
 
   return (
     <Toolbar
@@ -172,16 +201,28 @@ function EnhancedTableToolbar(props) {
         pl: { sm: 2 },
         pr: { xs: 1, sm: 1 },
         ...(numSelected > 0 && {
-          bgcolor: 'primary.light',
+          bgcolor: "primary.light",
         }),
       }}
     >
       {numSelected > 0 ? (
-        <Typography sx={{ flex: '1 1 100%' }} color="inherit" variant="subtitle1" component="div">
+        <Typography
+          sx={{ flex: "1 1 100%" }}
+          color="inherit"
+          variant="subtitle1"
+          component="div"
+        >
           {numSelected} selected
         </Typography>
       ) : (
-        <Box sx={{ flex: '1 1 100%', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box
+          sx={{
+            flex: "1 1 100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
           <Typography variant="h6" id="tableTitle" component="div">
             Search Results
           </Typography>
@@ -194,11 +235,11 @@ function EnhancedTableToolbar(props) {
           />
         </Box>
       )}
-      
+
       <Typography variant="subtitle2" color="text.secondary" sx={{ mr: 2 }}>
         Total Results: {totalHits}
       </Typography>
-      
+
       {compareCount > 0 && (
         <Stack direction="row" spacing={1}>
           <Tooltip title="Compare selected items">
@@ -230,42 +271,48 @@ function EnhancedTableToolbar(props) {
 }
 
 const FoodSearch = () => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [totalHits, setTotalHits] = useState(0);
   const [selected, setSelected] = useState([]);
-  const [order, setOrder] = useState('desc');
-  const [orderBy, setOrderBy] = useState('score');
+  const [order, setOrder] = useState("desc");
+  const [orderBy, setOrderBy] = useState("score");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const navigate = useNavigate();
   const location = useLocation();
-  const { compareItems, addCompareItem, removeCompareItem, clearCompareItems, isInCompare } = useCompare();
-  
+  const {
+    compareItems,
+    addCompareItem,
+    removeCompareItem,
+    clearCompareItems,
+    isInCompare,
+  } = useCompare();
+
   // Extract logDate from URL parameters if present
   const queryParams = new URLSearchParams(location.search);
-  const logDate = queryParams.get('logDate');
-  const initialQuery = queryParams.get('q') || '';
-  
+  const logDate = queryParams.get("logDate");
+  const initialQuery = queryParams.get("q") || "";
+
   useEffect(() => {
     if (initialQuery) {
       setQuery(initialQuery);
       debouncedSearch(initialQuery, 0, orderBy, order);
     }
   }, [initialQuery]);
-  
+
   // Format date for display - fix timezone issues
   const formatDateForDisplay = (dateStr) => {
     // Check if it's our YYYY-MM-DD format
     if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const [year, month, day] = dateStr.split('-').map(Number);
+      const [year, month, day] = dateStr.split("-").map(Number);
       // Create date in local timezone (month is 0-indexed)
       return new Date(year, month - 1, day).toLocaleDateString();
-    } 
+    }
     // Otherwise try to parse as regular date
-    return dateStr ? new Date(dateStr).toLocaleDateString() : '';
+    return dateStr ? new Date(dateStr).toLocaleDateString() : "";
   };
 
   const debouncedSearch = useCallback(
@@ -277,36 +324,36 @@ const FoodSearch = () => {
       }
 
       setLoading(true);
-      setError('');
+      setError("");
 
       try {
         const results = await searchFoods(searchQuery, {
           pageSize: rowsPerPage,
           pageNumber: pageNum + 1,
           sortBy,
-          sortOrder
+          sortOrder,
         });
-        
-        const processedFoods = results.foods.map(food => {
+
+        const processedFoods = results.foods.map((food) => {
           try {
             const nutrientData = extractNutrients(food, true);
             const macros = nutrientData.nutrients?.macronutrients || [];
-            
+
             return {
               ...food,
-              protein: macros.find(n => n.name === 'Protein')?.value || 0,
-              fat: macros.find(n => n.name === 'Total Fat')?.value || 0,
-              carbs: macros.find(n => n.name === 'Carbohydrates')?.value || 0,
-              calories: macros.find(n => n.name === 'Energy')?.value || 0,
+              protein: macros.find((n) => n.name === "Protein")?.value || 0,
+              fat: macros.find((n) => n.name === "Total Fat")?.value || 0,
+              carbs: macros.find((n) => n.name === "Carbohydrates")?.value || 0,
+              calories: macros.find((n) => n.name === "Energy")?.value || 0,
             };
           } catch (err) {
-            console.error('Error processing food nutrients:', err, food);
+            console.error("Error processing food nutrients:", err, food);
             return {
               ...food,
               protein: 0,
               fat: 0,
               carbs: 0,
-              calories: 0
+              calories: 0,
             };
           }
         });
@@ -314,8 +361,8 @@ const FoodSearch = () => {
         setFoods(processedFoods);
         setTotalHits(results.totalHits);
       } catch (error) {
-        console.error('Search failed:', error);
-        setError('Failed to search foods. Please try again.');
+        console.error("Search failed:", error);
+        setError("Failed to search foods. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -324,49 +371,49 @@ const FoodSearch = () => {
   );
 
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-    
+
     // Map UI column names to API sort parameters
     let apiSortBy = property;
-    
+
     // The API uses different field names for sorting than our UI
     switch (property) {
-      case 'calories':
-        apiSortBy = 'foodNutrients.nutrientId:1008';
+      case "calories":
+        apiSortBy = "foodNutrients.nutrientId:1008";
         break;
-      case 'protein':
-        apiSortBy = 'foodNutrients.nutrientId:1003';
+      case "protein":
+        apiSortBy = "foodNutrients.nutrientId:1003";
         break;
-      case 'fat':
-        apiSortBy = 'foodNutrients.nutrientId:1004';
+      case "fat":
+        apiSortBy = "foodNutrients.nutrientId:1004";
         break;
-      case 'carbs':
-        apiSortBy = 'foodNutrients.nutrientId:1005';
+      case "carbs":
+        apiSortBy = "foodNutrients.nutrientId:1005";
         break;
       // For other fields, use the property name directly
       default:
         apiSortBy = property;
     }
-    
-    debouncedSearch(query, page, apiSortBy, isAsc ? 'asc' : 'desc');
+
+    debouncedSearch(query, page, apiSortBy, isAsc ? "asc" : "desc");
   };
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
       const newSelecteds = foods.map((food) => food.fdcId);
       setSelected(newSelecteds);
-      
+
       // Add all to compare (up to max)
       if (event.target.checked) {
         const availableSlots = MAX_COMPARE_ITEMS - compareItems.length;
         if (availableSlots > 0) {
           const foodsToAdd = foods
-            .filter(food => !isInCompare(food.fdcId))
+            .filter((food) => !isInCompare(food.fdcId))
             .slice(0, availableSlots);
-          
-          foodsToAdd.forEach(food => addCompareItem(food));
+
+          foodsToAdd.forEach((food) => addCompareItem(food));
         }
       }
       return;
@@ -380,17 +427,19 @@ const FoodSearch = () => {
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, fdcId);
-      
+
       // Find the food item and add to compare
-      const foodToAdd = foods.find(food => food.fdcId === fdcId);
+      const foodToAdd = foods.find((food) => food.fdcId === fdcId);
       if (foodToAdd && !isInCompare(fdcId)) {
         // Only try to add if we're under the max
         if (compareItems.length < MAX_COMPARE_ITEMS) {
           addCompareItem(foodToAdd);
         } else {
           // Show a message that max items reached
-          setError(`Maximum of ${MAX_COMPARE_ITEMS} items can be compared at once.`);
-          setTimeout(() => setError(''), 3000);
+          setError(
+            `Maximum of ${MAX_COMPARE_ITEMS} items can be compared at once.`
+          );
+          setTimeout(() => setError(""), 3000);
         }
       }
     } else {
@@ -402,10 +451,10 @@ const FoodSearch = () => {
       } else if (selectedIndex > 0) {
         newSelected = newSelected.concat(
           selected.slice(0, selectedIndex),
-          selected.slice(selectedIndex + 1),
+          selected.slice(selectedIndex + 1)
         );
       }
-      
+
       // Also remove from compare
       if (isInCompare(fdcId)) {
         removeCompareItem(fdcId);
@@ -419,15 +468,15 @@ const FoodSearch = () => {
     // Build URL parameters
     const params = new URLSearchParams();
     if (logDate) {
-      params.append('logDate', logDate);
+      params.append("logDate", logDate);
     }
     if (query) {
-      params.append('searchQuery', query);
+      params.append("searchQuery", query);
     }
-    
+
     // Navigate with all parameters
     const queryString = params.toString();
-    navigate(`/food/${fdcId}${queryString ? `?${queryString}` : ''}`);
+    navigate(`/food/${fdcId}${queryString ? `?${queryString}` : ""}`);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -454,7 +503,7 @@ const FoodSearch = () => {
 
   const handleCompareItems = () => {
     if (compareItems.length > 0) {
-      navigate('/compare');
+      navigate("/compare");
     }
   };
 
@@ -468,9 +517,9 @@ const FoodSearch = () => {
       <Container>
         <Box mb={4}>
           <Typography variant="h4" gutterBottom>
-            Search Foods 
+            Search Foods
             {logDate && (
-              <Chip 
+              <Chip
                 label={`For ${formatDateForDisplay(logDate)}`}
                 color="primary"
                 size="small"
@@ -499,7 +548,8 @@ const FoodSearch = () => {
 
         {totalHits > 5000 && foods.length > 0 && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            Your search returned {totalHits} results. Only the most relevant items are shown. Try a more specific search term for better results.
+            Your search returned {totalHits} results. Only the most relevant
+            items are shown. Try a more specific search term for better results.
           </Alert>
         )}
 
@@ -508,10 +558,10 @@ const FoodSearch = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <Paper sx={{ width: '100%', mb: 2 }}>
-            <EnhancedTableToolbar 
-              numSelected={selected.length} 
-              totalHits={totalHits} 
+          <Paper sx={{ width: "100%", mb: 2 }}>
+            <EnhancedTableToolbar
+              numSelected={selected.length}
+              totalHits={totalHits}
               compareCount={compareItems.length}
               onCompare={handleCompareItems}
               onClearCompare={handleClearCompare}
@@ -541,46 +591,50 @@ const FoodSearch = () => {
                         tabIndex={-1}
                         key={food.fdcId}
                         selected={isItemSelected}
-                        sx={{ cursor: 'pointer' }}
+                        sx={{ cursor: "pointer" }}
                       >
                         <TableCell padding="checkbox">
                           <Checkbox
                             color="primary"
                             checked={isItemSelected}
                             inputProps={{
-                              'aria-labelledby': labelId,
+                              "aria-labelledby": labelId,
                             }}
                           />
                         </TableCell>
                         <TableCell component="th" id={labelId} scope="row">
-                          {food.description || 'N/A'}
+                          {food.description || "N/A"}
                         </TableCell>
-                        <TableCell>{food.brandName || food.brandOwner || 'N/A'}</TableCell>
-                        <TableCell>{food.foodCategory || 'N/A'}</TableCell>
-                        <TableCell align="right">
-                          {food.servingSize 
-                            ? `${food.servingSize} ${food.servingSizeUnit || ''}`
-                            : 'N/A'}
+                        <TableCell>
+                          {food.brandName || food.brandOwner || "N/A"}
                         </TableCell>
+                        <TableCell>{food.foodCategory || "N/A"}</TableCell>
                         <TableCell align="right">
-                          {typeof food.protein === 'number' 
-                            ? food.protein.toFixed(1) 
-                            : 'N/A'}
-                        </TableCell>
-                        <TableCell align="right">
-                          {typeof food.fat === 'number' 
-                            ? food.fat.toFixed(1) 
-                            : 'N/A'}
+                          {food.servingSize
+                            ? `${food.servingSize} ${
+                                food.servingSizeUnit || ""
+                              }`
+                            : "N/A"}
                         </TableCell>
                         <TableCell align="right">
-                          {typeof food.carbs === 'number' 
-                            ? food.carbs.toFixed(1) 
-                            : 'N/A'}
+                          {typeof food.protein === "number"
+                            ? food.protein.toFixed(1)
+                            : "N/A"}
                         </TableCell>
                         <TableCell align="right">
-                          {typeof food.calories === 'number' 
-                            ? food.calories.toFixed(0) 
-                            : 'N/A'}
+                          {typeof food.fat === "number"
+                            ? food.fat.toFixed(1)
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell align="right">
+                          {typeof food.carbs === "number"
+                            ? food.carbs.toFixed(1)
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell align="right">
+                          {typeof food.calories === "number"
+                            ? food.calories.toFixed(0)
+                            : "N/A"}
                         </TableCell>
                       </TableRow>
                     );
@@ -604,4 +658,4 @@ const FoodSearch = () => {
   );
 };
 
-export default FoodSearch; 
+export default FoodSearch;

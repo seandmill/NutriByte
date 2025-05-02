@@ -1,25 +1,31 @@
 // Jest setup file
-import '@testing-library/jest-dom';
-import { jest, beforeAll, afterAll } from '@jest/globals';
+import "@testing-library/jest-dom";
+import { jest, beforeAll, afterAll } from "@jest/globals";
 
-if (typeof globalThis.TextEncoder === 'undefined') {
+if (typeof globalThis.TextEncoder === "undefined") {
   globalThis.TextEncoder = function TextEncoder() {};
-  globalThis.TextEncoder.prototype.encode = function encode() { return []; };
+  globalThis.TextEncoder.prototype.encode = function encode() {
+    return [];
+  };
 }
 
-if (typeof globalThis.TextDecoder === 'undefined') {
+if (typeof globalThis.TextDecoder === "undefined") {
   globalThis.TextDecoder = function TextDecoder() {};
-  globalThis.TextDecoder.prototype.decode = function decode() { return ''; };
+  globalThis.TextDecoder.prototype.decode = function decode() {
+    return "";
+  };
 }
 
 // Mock the matchMedia function for components that use it
-globalThis.matchMedia = globalThis.matchMedia || function() {
-  return {
-    matches: false,
-    addListener: function() {},
-    removeListener: function() {}
+globalThis.matchMedia =
+  globalThis.matchMedia ||
+  function () {
+    return {
+      matches: false,
+      addListener: function () {},
+      removeListener: function () {},
+    };
   };
-};
 
 // Mock the window.scrollTo method
 globalThis.scrollTo = jest.fn();
@@ -40,4 +46,4 @@ beforeAll(() => {
 
 afterAll(() => {
   console.error = originalError;
-}); 
+});

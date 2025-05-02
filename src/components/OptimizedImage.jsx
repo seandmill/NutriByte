@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Skeleton } from '@mui/material';
-import PropTypes from 'prop-types';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Box, Skeleton } from "@mui/material";
+import PropTypes from "prop-types";
 
 // Create a persistent cache for images that persists between renders
 const imageCache = new Map();
@@ -8,7 +8,7 @@ const imageCache = new Map();
 // Function to preload common images
 const preloadImage = (url) => {
   if (!url || imageCache.has(url)) return Promise.resolve();
-  
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.src = url;
@@ -23,18 +23,15 @@ const preloadImage = (url) => {
 // Preload common images for faster rendering
 const preloadImages = (urls) => {
   if (!urls || !Array.isArray(urls)) return;
-  urls.forEach(url => preloadImage(url));
+  urls.forEach((url) => preloadImage(url));
 };
 
 // Preload the logo and placeholder image
-preloadImages([
-  '/nutribyte_logo.png',
-  '/placeholder_feature_image.png'
-]);
+preloadImages(["/nutribyte_logo.png", "/placeholder_feature_image.png"]);
 
 /**
  * Optimized image component with lazy loading, caching, and fallback
- * 
+ *
  * @param {Object} props Component props
  * @param {string} props.src Image source URL
  * @param {string} props.alt Image alt text
@@ -46,15 +43,15 @@ preloadImages([
  * @param {number} props.height Optional explicit height in pixels
  * @returns {JSX.Element} The image component
  */
-const OptimizedImage = ({ 
-  src, 
-  alt, 
-  sx = {}, 
-  fallbackSrc = '/placeholder_feature_image.png',
+const OptimizedImage = ({
+  src,
+  alt,
+  sx = {},
+  fallbackSrc = "/placeholder_feature_image.png",
   priority = false,
   width,
   height,
-  ...imgProps 
+  ...imgProps
 }) => {
   const [loading, setLoading] = useState(!imageCache.has(src));
   const [imgSrc, setImgSrc] = useState(imageCache.get(src) || src);
@@ -77,16 +74,19 @@ const OptimizedImage = ({
   }, [src]);
 
   // Load the image
-  const loadImage = useCallback((imageSrc) => {
-    if (imageCache.has(imageSrc)) {
-      setLoading(false);
-      return;
-    }
+  const loadImage = useCallback(
+    (imageSrc) => {
+      if (imageCache.has(imageSrc)) {
+        setLoading(false);
+        return;
+      }
 
-    preloadImage(imageSrc)
-      .then(() => handleImageLoad())
-      .catch(() => handleImageError());
-  }, [handleImageLoad, handleImageError]);
+      preloadImage(imageSrc)
+        .then(() => handleImageLoad())
+        .catch(() => handleImageError());
+    },
+    [handleImageLoad, handleImageError]
+  );
 
   // Setup and cleanup intersection observer
   useEffect(() => {
@@ -106,7 +106,7 @@ const OptimizedImage = ({
     }
 
     // For non-priority images, use intersection observer
-    if (imageRef.current && 'IntersectionObserver' in window) {
+    if (imageRef.current && "IntersectionObserver" in window) {
       // Cleanup previous observer if it exists
       if (observerRef.current) {
         observerRef.current.disconnect();
@@ -120,7 +120,7 @@ const OptimizedImage = ({
             observerRef.current.disconnect();
           }
         },
-        { rootMargin: '200px' } // Start loading when within 200px of viewport
+        { rootMargin: "200px" } // Start loading when within 200px of viewport
       );
 
       observerRef.current.observe(imageRef.current);
@@ -140,35 +140,35 @@ const OptimizedImage = ({
   return (
     <Box position="relative" sx={{ ...sx }}>
       {loading && (
-        <Skeleton 
-          variant="rectangular" 
+        <Skeleton
+          variant="rectangular"
           animation="wave"
-          width={width || '100%'} 
-          height={height || '100%'} 
-          sx={{ 
-            position: 'absolute',
+          width={width || "100%"}
+          height={height || "100%"}
+          sx={{
+            position: "absolute",
             top: 0,
-            left: 0
+            left: 0,
           }}
         />
       )}
       <img
         ref={imageRef}
         src={imgSrc}
-        alt={alt || 'Image'}
+        alt={alt || "Image"}
         onLoad={handleImageLoad}
         onError={handleImageError}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={priority ? "eager" : "lazy"}
         width={width}
         height={height}
         decoding="async"
         style={{
-          width: width ? 'auto' : '100%',
-          height: height ? 'auto' : '100%',
-          objectFit: 'cover',
-          visibility: loading ? 'hidden' : 'visible',
-          transition: 'opacity 0.3s ease-in-out',
-          opacity: loading ? 0 : 1
+          width: width ? "auto" : "100%",
+          height: height ? "auto" : "100%",
+          objectFit: "cover",
+          visibility: loading ? "hidden" : "visible",
+          transition: "opacity 0.3s ease-in-out",
+          opacity: loading ? 0 : 1,
         }}
         {...imgProps}
       />
@@ -185,7 +185,7 @@ OptimizedImage.propTypes = {
   priority: PropTypes.bool,
   width: PropTypes.number,
   height: PropTypes.number,
-  imgProps: PropTypes.object
+  imgProps: PropTypes.object,
 };
 
 export default OptimizedImage;

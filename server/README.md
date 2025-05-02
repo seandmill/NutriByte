@@ -1,13 +1,14 @@
 # NutriByte Backend Server
 
-This directory contains the backend Express.js server for the NutriByte nutrition tracking application. The server provides API endpoints for user authentication, food logging, and user configuration.
+This directory contains the backend Express.js server for the NutriByte nutrition tracking application. The server provides API endpoints for user authentication, food logging, and user configuration, along with production-ready features like clustering, caching, and cloud database integration.
 
 ## Server Structure
 
 ```
 server/
 ├── middleware/           # Express middleware
-│   └── auth.js           # Authentication middleware
+│   ├── auth.js           # Authentication middleware
+│   └── cache.js          # Redis caching middleware
 ├── models/               # Mongoose data models
 │   ├── FoodLog.js        # Schema for food logging
 │   └── User.js           # Schema for user data
@@ -15,17 +16,22 @@ server/
 │   ├── auth.js           # Authentication routes
 │   ├── logs.js           # Food logging routes
 │   └── userRoutes.js     # User configuration routes
+├── utils/
+│   └── redisClient.js    # Redis connection utilities
+├── cluster.js            # Node.js clustering implementation
 ├── index.js              # Main server entry point
-├── integrated.js         # Combined server for ZyBooks
+├── integrated.js         # Combined server for production
 └── package.json          # Server dependencies
 ```
 
 ## Backend Architecture
 
-The server follows a typical Express.js architecture:
-1. **Models**: Define data schemas using Mongoose
+The server follows a modern, production-ready architecture:
+1. **Models**: Define data schemas using Mongoose connected to MongoDB Atlas
 2. **Routes**: Handle API endpoints and business logic
-3. **Middleware**: Process requests before they reach route handlers
+3. **Middleware**: Process requests with authentication and caching
+4. **Clustering**: Distribute requests across multiple Node.js workers
+5. **Caching**: Redis-based response caching for improved performance
 
 ## API Endpoints
 
@@ -87,8 +93,12 @@ npm run zybooks
 
 The server requires these environment variables:
 - `PORT`: Server port (default: 8080) 
-- `MONGODB_URI`: MongoDB connection string
+- `MONGODB_URI`: MongoDB connection string (points to MongoDB Atlas in production)
 - `USDA_API_KEY`: API key for USDA Food Data Central
+- `ENABLE_CLUSTERING`: Set to 'true' to enable Node.js clustering
+- `REDIS_ENABLED`: Set to 'true' to enable Redis caching
+- `REDISCLOUD_URL`: Redis connection URL for caching (production)
+- `ALLOWED_ORIGINS`: Comma-separated list of allowed CORS origins
 
 ## Database Models
 
@@ -108,5 +118,36 @@ Stores food consumption records:
 
 - Session-based authentication for simplicity in educational context
 - MongoDB aggregation for nutrition analytics
-- Proxy implementation for external API calls
+- Proxy implementation for external API calls with Redis caching
 - Proper error handling and validation
+- Horizontal scaling via Node.js clustering
+- Performance optimization with Redis caching
+- Cloud database integration with MongoDB Atlas
+
+## Production Features
+
+### Distributed Systems (Node.js Clustering)
+
+The server implements a distributed system architecture using Node.js clustering:
+
+- Spawns one worker per CPU core automatically
+- Uses round-robin load balancing for request distribution
+- Implements inter-process communication for state sharing
+- Includes worker monitoring and auto-restart capabilities
+- Tracks requests per worker for analysis
+
+### Redis Caching
+
+Performance optimization with Redis:
+
+- Caches USDA API responses to reduce external API calls
+- Configurable TTL-based cache expiration
+- Graceful fallback when cache is unavailable
+- Significant performance improvements for repeated queries
+
+### Cloud Database Integration
+
+- Migrated from local MongoDB to MongoDB Atlas
+- Optimized connection pooling for concurrent requests
+- Comprehensive error handling and retry logic
+- Secure credential management via environment variables

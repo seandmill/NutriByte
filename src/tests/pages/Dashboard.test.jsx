@@ -1,7 +1,6 @@
-import React from 'react';
-import { describe, it, expect } from '@jest/globals';
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { describe, it, expect } from "@jest/globals";
+import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
 // Create a simplified version for testing
 const Dashboard = () => {
@@ -27,30 +26,32 @@ const Dashboard = () => {
 };
 
 // Simplified tests to demonstrate capability
-describe('Dashboard Page', () => {
-  it('renders the Dashboard title', () => {
+describe("Dashboard Page", () => {
+  it("renders the Dashboard title", () => {
     render(<Dashboard />);
-    expect(screen.getByText('Daily Log')).toBeInTheDocument();
+    expect(screen.getByText("Daily Log")).toBeInTheDocument();
   });
-  
-  it('displays empty state message when no logs exist', () => {
+
+  it("displays empty state message when no logs exist", () => {
     render(<Dashboard />);
-    expect(screen.getByText('No Food Logs Yet')).toBeInTheDocument();
-    expect(screen.getByText(/You haven't logged any food for/)).toBeInTheDocument();
+    expect(screen.getByText("No Food Logs Yet")).toBeInTheDocument();
+    expect(
+      screen.getByText(/You haven't logged any food for/)
+    ).toBeInTheDocument();
   });
-  
-  it('renders date picker and Add Food button', () => {
+
+  it("renders date picker and Add Food button", () => {
     render(<Dashboard />);
-    expect(screen.getByText('Add Food')).toBeInTheDocument();
-    expect(screen.getByLabelText('Date')).toBeInTheDocument();
+    expect(screen.getByText("Add Food")).toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toBeInTheDocument();
   });
-  
-  it('renders nutrition summary cards', () => {
+
+  it("renders nutrition summary cards", () => {
     render(<Dashboard />);
-    expect(screen.getByText('Calories')).toBeInTheDocument();
-    expect(screen.getByText('Protein')).toBeInTheDocument();
-    expect(screen.getByText('Carbs')).toBeInTheDocument();
-    expect(screen.getByText('Fat')).toBeInTheDocument();
-    expect(screen.getByText('Fiber')).toBeInTheDocument();
+    expect(screen.getByText("Calories")).toBeInTheDocument();
+    expect(screen.getByText("Protein")).toBeInTheDocument();
+    expect(screen.getByText("Carbs")).toBeInTheDocument();
+    expect(screen.getByText("Fat")).toBeInTheDocument();
+    expect(screen.getByText("Fiber")).toBeInTheDocument();
   });
-}); 
+});
