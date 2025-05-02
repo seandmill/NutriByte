@@ -19,7 +19,6 @@ server/
 ├── utils/
 │   └── redisClient.js    # Redis connection utilities
 ├── cluster.js            # Node.js clustering implementation
-├── index.js              # Main server entry point
 ├── integrated.js         # Combined server for production
 └── package.json          # Server dependencies
 ```
@@ -80,14 +79,9 @@ npm install
 npm start
 ```
 
-### Integrated Mode (for ZyBooks)
+### Integrated Mode
 
-The `integrated.js` file combines the Express backend with serving the React frontend static files. This allows the entire application to run on a single port (8080), which is required for the ZyBooks environment.
-
-To run in integrated mode from the project root:
-```bash
-npm run zybooks
-```
+The `integrated.js` file combines the Express backend with serving the React frontend static files. This allows the entire application to run on a single port (8080).
 
 ## Environment Variables
 
