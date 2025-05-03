@@ -3,6 +3,15 @@ import { createClient } from "redis";
 // Create Redis client
 let redisClient;
 
+// Custom logging with levels to reduce output in production
+const LOG_LEVEL = process.env.NODE_ENV === 'production' ? 'warn' : 'info';
+const logger = {
+  error: (...args) => console.error(...args),
+  warn: (...args) => LOG_LEVEL !== 'error' && console.warn(...args),
+  info: (...args) => ['info', 'debug'].includes(LOG_LEVEL) && console.log(...args),
+  debug: (...args) => LOG_LEVEL === 'debug' && console.log(...args)
+};
+
 // Create a dummy client that implements the Redis interface but does nothing
 const createDummyClient = () => ({
   get: async () => null,
@@ -16,7 +25,7 @@ const createDummyClient = () => ({
 export const initRedisClient = async () => {
   // Check if Redis is explicitly disabled
   if (process.env.REDIS_ENABLED === "false") {
-    console.log(
+    logger.info(
       "Redis explicitly disabled via REDIS_ENABLED environment variable"
     );
     return createDummyClient();
@@ -27,6 +36,7 @@ export const initRedisClient = async () => {
     // Otherwise use default localhost connection
     const redisUrl = process.env.REDISCLOUD_URL || "redis://localhost:6379";
 
+    // Set Redis client options to optimize memory usage
     redisClient = createClient({
       url: redisUrl,
       socket: {
@@ -34,61 +44,76 @@ export const initRedisClient = async () => {
         reconnectStrategy: (retries) => {
           // Give up after 3 retries
           if (retries > 3) {
-            console.log("Redis connection failed after 3 retries, giving up");
-            return false;
+            logger.warn("Redis connection failed after 3 retries");
+            return new Error("Redis connection failed after maximum retries");
           }
-          return Math.min(retries * 100, 3000); // Increasing backoff
+          // Reconnect after increasing delay (exponential backoff)
+          return Math.min(retries * 100, 3000);
         },
       },
+      commandsQueueMaxLength: 1000, // Limit command queue length to prevent memory issues
     });
 
-    // Set up event handlers
+    // Configure Redis client event handlers
     redisClient.on("error", (err) => {
-      console.error("Redis Client Error", err);
+      logger.error("Redis client error:", err);
     });
 
-    redisClient.on("connect", () => {
-      console.log("✅ Connected to Redis");
+    redisClient.on("reconnecting", () => {
+      logger.info("Redis client reconnecting...");
     });
 
-    // Connect to Redis with a timeout
-    const connectPromise = redisClient.connect();
+    await redisClient.connect();
 
-    // Add a 5 second timeout to the connect promise
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Redis connection timeout")), 5000);
-    });
+    // Configure Redis server with optimized memory settings
+    try {
+      // Set memory policy to remove least recently used keys when memory is full
+      await redisClient.sendCommand([
+        'CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lru'
+      ]);
+      
+      // Only if running in production to avoid affecting local dev environment
+      if (process.env.NODE_ENV === 'production') {
+        await redisClient.sendCommand([
+          'CONFIG', 'SET', 'maxmemory', '30mb'
+        ]);
+      }
+      
+      logger.info("Redis memory optimizations applied");
+    } catch (configError) {
+      // Not critical if this fails (might not have permission on hosted Redis)
+      logger.warn("Could not configure Redis memory settings:", configError);
+    }
 
-    // Race the promises - whichever resolves/rejects first wins
-    await Promise.race([connectPromise, timeoutPromise]).catch((error) => {
-      console.error("Redis connection timed out:", error);
-      throw error;
-    });
+    logger.info("Connected to Redis");
 
     return redisClient;
-  } catch (error) {
-    console.error("❌ Failed to connect to Redis:", error);
-
-    // Return dummy client to allow app to function without Redis
+  } catch (err) {
+    logger.error("Error connecting to Redis:", err);
     return createDummyClient();
   }
 };
 
-// Get the Redis client (or create it if it doesn't exist)
+// Export the Redis client getter
 export const getRedisClient = () => {
   if (!redisClient || !redisClient.isReady) {
-    console.warn(
-      "⚠️ Redis client not initialized or not ready, creating a new one"
-    );
-    return initRedisClient();
+    logger.warn("Redis client requested but not ready, returning dummy client");
+    return createDummyClient();
   }
   return redisClient;
 };
 
-// Clean up the Redis client on process exit
-process.on("exit", () => {
+// Export a Redis cleanup function
+export const closeRedisConnection = async () => {
   if (redisClient && redisClient.isReady) {
-    console.log("Closing Redis connection");
-    redisClient.quit();
+    try {
+      await redisClient.quit();
+      logger.info("Redis connection closed");
+    } catch (err) {
+      logger.error("Error closing Redis connection:", err);
+    }
   }
-});
+};
+
+// Clean up the Redis client on process exit
+process.on("exit", closeRedisConnection);
