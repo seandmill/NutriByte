@@ -7,6 +7,7 @@ import { config } from "dotenv";
 import { resolve, join } from "path";
 import axios from "axios";
 import { existsSync, readdirSync } from "fs";
+import compression from "compression";
 import { initRedisClient } from "./utils/redisClient.js";
 import { cacheMiddleware } from "./middleware/cache.js";
 import cluster from "node:cluster";
@@ -35,6 +36,9 @@ app.use(
   })
 );
 app.use(json());
+
+// Enable compression for all responses
+app.use(compression({ level: 6 })); // Level 6 provides good balance between compression and CPU usage
 
 // Log middleware to track requests
 app.use((req, res, next) => {
@@ -227,11 +231,26 @@ if (
     console.error("Error listing directories:", err);
   }
 
-  // Serve the main build directory (handles index.html and root assets like images)
-  app.use(express.static(clientPath));
+  // Serve the main build directory with cache headers
+  app.use(express.static(clientPath, {
+    maxAge: '7d', // Cache static assets for 7 days
+    setHeaders: (res, path) => {
+      // Set shorter cache for HTML files
+      if (path.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'public, max-age=0');
+      }
+      // Set longer cache for images and other static assets
+      else if (path.match(/\.(jpg|jpeg|png|webp|svg|gif)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+      }
+    }
+  }));
 
-  // Serve assets directory specifically (handles CSS, JS chunks, etc.)
-  app.use("/assets", express.static(join(clientPath, "assets")));
+  // Serve assets directory with aggressive caching
+  app.use("/assets", express.static(join(clientPath, "assets"), {
+    maxAge: '31536000', // 1 year cache for assets
+    immutable: true, // Never validate with server during cache period
+  }));
 
   // For any non-API routes, send the React app's index.html
   app.get("*", (req, res, next) => {

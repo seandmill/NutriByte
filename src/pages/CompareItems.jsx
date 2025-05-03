@@ -15,9 +15,7 @@ import {
   CardContent,
   CardMedia,
   Button,
-  Divider,
   Chip,
-  Stack,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -29,7 +27,7 @@ import { useCompare } from "../contexts/CompareContext";
 import { NUTRIENT_CATEGORIES, NUTRIENT_METADATA } from "../utils/nutrientUtils";
 
 // Food placeholder image
-const FOOD_PLACEHOLDER = "/placeholder_feature_image.png";
+const FOOD_PLACEHOLDER = "/placeholder_feature_image.webp";
 
 const CompareItems = () => {
   const navigate = useNavigate();

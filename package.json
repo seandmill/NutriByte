@@ -52,6 +52,7 @@
         "@mui/x-date-pickers": "^7.28.3",
         "axios": "^1.8.4",
         "chart.js": "^4.4.8",
+        "compression": "^1.8.0",
         "cors": "^2.8.5",
         "date-fns": "^2.30.0",
         "dotenv": "^16.3.1",

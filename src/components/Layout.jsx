@@ -67,11 +67,12 @@ const Layout = ({ children }) => {
       >
         <OptimizedImage
           component="img"
-          src="/nutribyte_logo.png"
+          src="/nutribyte_logo.webp"
           alt="NutriByte Logo"
+          priority={true}
           sx={{
             width: "calc(100% - 5px)",
-            maxHeight: "250px",
+            maxHeight: "200px", /* Reduced size for faster loading */
             objectFit: "contain",
           }}
         />

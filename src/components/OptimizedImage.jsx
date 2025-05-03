@@ -26,8 +26,13 @@ const preloadImages = (urls) => {
   urls.forEach((url) => preloadImage(url));
 };
 
-// Preload the logo and placeholder image
-preloadImages(["/nutribyte_logo.png", "/placeholder_feature_image.png"]);
+// Preload the logo (WebP version) and placeholder image
+preloadImages([
+  "/nutribyte_logo.webp",
+  "/placeholder_feature_image.webp",
+  "/hero_image.webp",
+  "/nutribyte_favicon.png",
+]);
 
 /**
  * Optimized image component with lazy loading, caching, and fallback
@@ -47,14 +52,23 @@ const OptimizedImage = ({
   src,
   alt,
   sx = {},
-  fallbackSrc = "/placeholder_feature_image.png",
+  fallbackSrc = "/placeholder_feature_image.webp",
   priority = false,
   width,
   height,
   ...imgProps
 }) => {
-  const [loading, setLoading] = useState(!imageCache.has(src));
-  const [imgSrc, setImgSrc] = useState(imageCache.get(src) || src);
+  // Automatically use WebP if available (for images in our control)
+  let webpSrc = src;
+  if (src?.includes(".png")) {
+    webpSrc = src.replace(".png", ".webp");
+  } else if (src?.includes(".jpg") || src?.includes(".jpeg")) {
+    webpSrc = src.replace(/\.(jpg|jpeg)$/, ".webp");
+  }
+  const [loading, setLoading] = useState(!imageCache.has(webpSrc || src));
+  const [imgSrc, setImgSrc] = useState(
+    imageCache.get(webpSrc || src) || webpSrc || src
+  );
   const imageRef = useRef(null);
   const observerRef = useRef(null);
 
@@ -91,8 +105,9 @@ const OptimizedImage = ({
   // Setup and cleanup intersection observer
   useEffect(() => {
     // Reset state when src changes
-    setImgSrc(imageCache.get(src) || src);
-    if (!imageCache.has(src)) {
+    const sourceSrc = webpSrc || src;
+    setImgSrc(imageCache.get(sourceSrc) || sourceSrc);
+    if (!imageCache.has(sourceSrc)) {
       setLoading(true);
     } else {
       setLoading(false);
@@ -101,7 +116,7 @@ const OptimizedImage = ({
 
     // Priority images load immediately
     if (priority) {
-      loadImage(src);
+      loadImage(webpSrc || src);
       return;
     }
 
@@ -116,11 +131,11 @@ const OptimizedImage = ({
       observerRef.current = new IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting) {
-            loadImage(src);
+            loadImage(webpSrc || src);
             observerRef.current.disconnect();
           }
         },
-        { rootMargin: "200px" } // Start loading when within 200px of viewport
+        { rootMargin: "200px", threshold: 0.1 } // Start loading when 20% visible and within 200px of viewport
       );
 
       observerRef.current.observe(imageRef.current);
@@ -135,7 +150,7 @@ const OptimizedImage = ({
         observerRef.current.disconnect();
       }
     };
-  }, [src, priority, loadImage]);
+  }, [src, webpSrc, priority, loadImage]);
 
   return (
     <Box position="relative" sx={{ ...sx }}>
@@ -152,26 +167,38 @@ const OptimizedImage = ({
           }}
         />
       )}
-      <img
-        ref={imageRef}
-        src={imgSrc}
-        alt={alt || "Image"}
-        onLoad={handleImageLoad}
-        onError={handleImageError}
-        loading={priority ? "eager" : "lazy"}
-        width={width}
-        height={height}
-        decoding="async"
-        style={{
-          width: width ? "auto" : "100%",
-          height: height ? "auto" : "100%",
-          objectFit: "cover",
-          visibility: loading ? "hidden" : "visible",
-          transition: "opacity 0.3s ease-in-out",
-          opacity: loading ? 0 : 1,
-        }}
-        {...imgProps}
-      />
+      <picture>
+        {/* If source is PNG/JPG and we have a WebP version available */}
+        {(imgSrc?.includes(".png") ||
+          imgSrc?.includes(".jpg") ||
+          imgSrc?.includes(".jpeg")) && (
+          <source
+            srcSet={imgSrc.replace(/\.(png|jpg|jpeg)$/, ".webp")}
+            type="image/webp"
+          />
+        )}
+        <img
+          ref={imageRef}
+          src={imgSrc}
+          alt={alt || "Image"}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          loading={priority ? "eager" : "lazy"}
+          width={width}
+          height={height}
+          decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
+          style={{
+            width: width ? "auto" : "100%",
+            height: height ? "auto" : "100%",
+            objectFit: "cover",
+            visibility: loading ? "hidden" : "visible",
+            transition: "opacity 0.3s ease-in-out",
+            opacity: loading ? 0 : 1,
+          }}
+          {...imgProps}
+        />
+      </picture>
     </Box>
   );
 };
