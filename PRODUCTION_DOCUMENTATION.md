@@ -2,7 +2,7 @@
 
 ## Overview
 
-NutriByte Part 2 introducted several new features and infrastructure optmizations, including: distributed systems architecture, cloud deployment, caching strategies, and CI/CD implementation. These features ensure the application is production-ready, scalable, and meets academic requirements for demonstrating distributed systems concepts.
+NutriByte Part 2 introduced several new features and infrastructure optimizations, including: distributed systems architecture, cloud deployment, caching strategies, and CI/CD implementation. These features ensure the application is production-ready, scalable, and meets academic requirements for demonstrating distributed systems concepts.
 
 ## Features and Infrastructure
 
@@ -68,6 +68,14 @@ Comprehensive testing strategy implemented using Jest:
 - **Mocking**: Implementation of mocks for external dependencies
 - **CI Integration**: Tests automatically run as part of the deployment pipeline
 
+### 7. CSV Export
+
+Allow users to export their food logs and analytics data to a CSV file:
+
+- **Export Format**: CSV format with columns for date, food name, serving size, and nutrition information
+- **Export Functionality**: Export functionality is available in the analytics dashboard
+- **Export Trigger**: Export functionality is triggered by a button click
+
 ## Interactive Features
 
 ### 1. Cluster Dashboard
@@ -98,6 +106,7 @@ USDA_API_KEY=<api_key>         # USDA Food Data API key
 REDIS_URL=<redis_url>          # Redis connection URL
 REDIS_ENABLED=true             # Enable Redis caching
 NODE_ENV=production            # Node environment setting
+WORKER_COUNT=3                 # Number of workers to spawn (default: 3)
 ```
 
 ## Technical Decisions and Implementation Details
@@ -109,6 +118,20 @@ The application is designed for horizontal scaling through:
 - Distributed processing (Node.js clustering)
 - External caching layer (Redis)
 - Cloud database with connection pooling (MongoDB Atlas)
+
+### Memory Optimization
+
+The application employs several strategies to efficiently manage memory usage in Heroku's constrained environment:
+
+- **Limited Worker Allocation**: Configurable worker count via `WORKER_COUNT` environment variable (defaults to 2) to prevent exceeding memory limits
+- **Garbage Collection**: Periodic manual garbage collection via the `--expose-gc` Node.js flag
+- **Memory Monitoring**: Automated memory usage tracking that gracefully recycles workers when approaching the 512MB limit
+- **Redis Memory Management**: 
+  - Configurable memory limits (30MB in production)
+  - LRU (Least Recently Used) eviction policy for cached items
+  - Command queue length limitations
+- **Reduced Logging**: Level-based logging system with different verbosity for production and development
+- **Update Frequency Optimization**: Reduced worker communication frequency to minimize overhead
 
 ### Security Considerations
 
@@ -125,3 +148,9 @@ The application is designed for horizontal scaling through:
 - Efficient database queries with proper indexing
 - Strategic caching of expensive operations
 - Lazy loading of non-critical components
+- Server-side compression with Express (gzip/deflate/brotli) for reduced payload sizes
+- WebP image format implementation for reduced image sizes (60-80% smaller)
+- Optimized critical rendering path for faster Largest Contentful Paint (LCP)
+- Advanced image component with responsive loading and format fallbacks
+- Aggressive HTTP caching strategy for static assets
+- Preloading of critical resources
