@@ -20,8 +20,8 @@ import {
   ArrowBack as ArrowBackIcon,
   Save as SaveIcon,
 } from "@mui/icons-material";
-import Layout from "../components/Layout";
-import { getFoodLog, updateFoodLog } from "../api/logApi";
+import Layout from "../components/Layout.jsx";
+import { getFoodLog, updateFoodLog } from "@clientApi/logApi.js";
 
 const EditFoodLog = () => {
   const { id } = useParams();

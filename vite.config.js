@@ -3,10 +3,11 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
 // Get environment variables with fallbacks
-const PORT = process.env.PORT || 8080
+const BACKEND_PORT = process.env.PORT || 8080 // Renamed for clarity
+const VITE_PORT = 5173 // Define specific Vite port
 const API_URL = process.env.NODE_ENV === 'production' 
     ? '' // Empty string means same origin in production
-    : `http://localhost:${PORT}`
+    : `http://localhost:${BACKEND_PORT}` // Proxy target remains backend port
 
 export default defineConfig({
     plugins: [react()],
@@ -14,7 +15,8 @@ export default defineConfig({
     publicDir: resolve(__dirname, 'public'), // Use absolute path for publicDir
     resolve: {
         alias: {
-            '@': resolve(__dirname, 'src') // Alias relative to project root
+            '@': resolve(__dirname, 'src'),
+            '@clientApi': resolve(__dirname, 'src/clientApi'),
         }
     },
     esbuild: {
@@ -30,14 +32,14 @@ export default defineConfig({
         },
     },
     server: {
-        port: PORT,
+        port: VITE_PORT, // Use the new Vite port
         host: process.env.NODE_ENV === 'production' ? 'localhost' : '0.0.0.0',
         hmr: {
             port: process.env.HMR_PORT || 24678
         },
         proxy: process.env.NODE_ENV === 'production' ? {} : {
             '/api': {
-                target: API_URL,
+                target: API_URL, // Target remains the backend server URL
                 changeOrigin: true,
                 secure: false,
                 configure: (proxy) => {

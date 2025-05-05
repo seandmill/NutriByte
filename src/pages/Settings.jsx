@@ -27,13 +27,13 @@ import {
   HelpOutline as HelpOutlineIcon,
 } from "@mui/icons-material";
 import * as MuiIcons from "@mui/icons-material";
-import Layout from "../components/Layout";
+import Layout from "../components/Layout.jsx";
 import {
   CALORIE_FACTORS,
   NUTRIENT_METADATA,
   NUTRIENT_CATEGORIES,
-} from "../utils/nutrientUtils";
-import { getUserConfig, updateUserConfig } from "../api/userApi";
+} from "../utils/nutrientUtils.js";
+import { getUserConfig, updateUserConfig } from "@clientApi/userApi.js";
 
 // Helper to get icon component from string name (assuming it exists from previous steps)
 const getIcon = (iconName) => {

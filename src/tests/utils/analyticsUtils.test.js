@@ -3,7 +3,7 @@ import {
   getCalorieBreakdown,
   getTimeSeriesData,
   getFilterOptions,
-} from "../../utils/analyticsUtils";
+} from "../../utils/analyticsUtils.js";
 
 // --- Sample Log Data ---
 

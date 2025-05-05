@@ -18,10 +18,7 @@ import {
   Toolbar,
   Typography,
   Checkbox,
-  IconButton,
   Tooltip,
-  FormControlLabel,
-  Switch,
   Chip,
   Button,
   Stack,
@@ -34,11 +31,11 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 import { visuallyHidden } from "@mui/utils";
-import Layout from "../components/Layout";
-import { searchFoods } from "../api/foodApi";
-import { debounce } from "../utils/debounce";
-import { extractNutrients } from "../utils/nutrientUtils";
-import { useCompare, MAX_COMPARE_ITEMS } from "../contexts/CompareContext";
+import Layout from "../components/Layout.jsx";
+import { searchFoods } from "@clientApi/foodApi.js";
+import { debounce } from "../utils/debounce.js";
+import { extractNutrients } from "../utils/nutrientUtils.js";
+import { useCompare, MAX_COMPARE_ITEMS } from "../contexts/CompareContext.jsx";
 
 // Table column headers configuration
 const headCells = [

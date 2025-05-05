@@ -6,20 +6,20 @@ import {
 } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { CompareProvider } from "./contexts/CompareContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
+import { CompareProvider } from "./contexts/CompareContext.jsx";
 import { theme } from "./theme.js";
 
 // Pages
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import FoodSearch from "./pages/FoodSearch";
-import FoodDetail from "./pages/FoodDetail";
-import Settings from "./pages/Settings";
-import AnalyticsDashboard from "./pages/AnalyticsDashboard";
-import CompareItems from "./pages/CompareItems";
-import EditFoodLog from "./pages/EditFoodLog";
-import ClusterDashboard from "./pages/ClusterDashboard";
+import Login from "./pages/Login.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import FoodSearch from "./pages/FoodSearch.jsx";
+import FoodDetail from "./pages/FoodDetail.jsx";
+import Settings from "./pages/Settings.jsx";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard.jsx";
+import CompareItems from "./pages/CompareItems.jsx";
+import EditFoodLog from "./pages/EditFoodLog.jsx";
+import ClusterDashboard from "./pages/ClusterDashboard.jsx";
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();

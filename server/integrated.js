@@ -121,13 +121,6 @@ app.get("/api/cluster/status", (req, res) => {
   });
 });
 
-// Handle API JavaScript file requests that should be modules
-app.get("/api/:apiFile.js", (req, res) => {
-  const { apiFile } = req.params;
-  console.log(`Redirecting API file request for ${apiFile}.js to /`);
-  res.redirect("/");
-});
-
 // Add proxy for USDA API requests with Redis caching (30 minute cache)
 app.get("/api/foods/search", cacheMiddleware(1800), async (req, res) => {
   try {
@@ -286,6 +279,7 @@ app.use((err, req, res, next) => {
 
 // Start server with dynamic port
 const PORT = process.env.PORT || 8080;
+const VITE_PORT = process.env.VITE_PORT || 5173;
 
 const startServer = async () => {
   try {
@@ -293,7 +287,7 @@ const startServer = async () => {
       console.log(`🚀 Server running on port ${PORT}`);
       if (process.env.NODE_ENV !== "production") {
         console.log(`API routes accessible at http://localhost:${PORT}/api/`);
-        console.log(`Frontend accessible at http://localhost:${PORT}/`);
+        console.log(`Frontend accessible at http://localhost:${VITE_PORT}/`);
       }
     });
 

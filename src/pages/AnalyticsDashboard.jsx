@@ -5,15 +5,14 @@ import {
   Paper,
   Typography,
   Box,
+  Button,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   OutlinedInput,
   Checkbox,
   ListItemText,
   CircularProgress,
-  Button,
   ToggleButtonGroup,
   ToggleButton,
   Accordion,
@@ -27,7 +26,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import {
   ExpandMore as ExpandMoreIcon,
-  FilterList as FilterListIcon,
   ShowChart as ShowChartIcon,
   FileDownload as FileDownloadIcon,
 } from "@mui/icons-material";
@@ -44,24 +42,24 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Line, Bar, Pie, Doughnut } from "react-chartjs-2";
+import { Line, Doughnut } from "react-chartjs-2";
 import { format, parseISO, differenceInDays } from "date-fns";
 import axios from "axios";
 
-import Layout from "../components/Layout";
-import { getFilteredFoodLogs } from "../api/logApi";
+import Layout from "../components/Layout.jsx";
+import { getFilteredFoodLogs } from "@clientApi/logApi.js";
 import {
   getMineralsSummary,
   normalizeNutrientData,
   getCompleteNutrientData,
-} from "../api/analyticsApi";
+} from "@clientApi/analyticsApi.js";
 import {
   calculateDailyAverage,
   getCalorieBreakdown,
   getTimeSeriesData,
   getFilterOptions,
-} from "../utils/analyticsUtils";
-import { NUTRIENT_METADATA, NUTRIENT_CATEGORIES } from "../utils/nutrientUtils";
+} from "../utils/analyticsUtils.js";
+import { NUTRIENT_METADATA, NUTRIENT_CATEGORIES } from "../utils/nutrientUtils.js";
 
 // Register ChartJS components
 ChartJS.register(

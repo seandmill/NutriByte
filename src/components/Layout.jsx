@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import {
   Box,
   CssBaseline,
@@ -14,6 +14,8 @@ import {
   Divider,
   Paper,
   Avatar,
+  AppBar,
+  Toolbar,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -26,7 +28,7 @@ import {
   Engineering as EngineeringIcon,
 } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
-import OptimizedImage from "./OptimizedImage";
+import OptimizedImage from "./OptimizedImage.jsx";
 
 const drawerWidth = 240;
 
@@ -162,38 +164,34 @@ const Layout = ({ children }) => {
     </div>
   );
 
-  // Mobile header for small screens only
-  const mobileHeader = (
-    <Box
-      sx={{
-        display: { xs: "flex", sm: "none" },
-        alignItems: "center",
-        height: "64px",
-        px: 2,
-        bgcolor: "primary.main",
-        color: "white",
-      }}
-    >
-      <IconButton
-        color="inherit"
-        aria-label="open drawer"
-        edge="start"
-        onClick={handleDrawerToggle}
-        sx={{ mr: 2 }}
-      >
-        <MenuIcon />
-      </IconButton>
-      <Typography variant="h6" component="div">
-        {menuItems.find((item) => item.path === location.pathname)?.text ||
-          "NutriByte"}
-      </Typography>
-    </Box>
-  );
-
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      {mobileHeader}
+      {/* Mobile-only AppBar */}
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` }, // Adjust width on larger screens if drawer is visible
+          ml: { sm: `${drawerWidth}px` },             // Margin left on larger screens
+          display: { xs: 'block', sm: 'none' },         // Only display on mobile
+          bgcolor: 'primary.main',                    // Added background color for visibility
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+             {/* Optionally add a title here if needed on mobile */} 
+          </Typography>
+        </Toolbar>
+      </AppBar>
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -241,6 +239,8 @@ const Layout = ({ children }) => {
           bgcolor: "#F7F7F7",
         }}
       >
+        {/* Toolbar spacer to prevent content from hiding behind AppBar on mobile */}
+        <Toolbar sx={{ display: { xs: 'block', sm: 'none' } }} /> 
         <Paper
           elevation={0}
           sx={{

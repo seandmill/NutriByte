@@ -1,5 +1,5 @@
-import { format, parseISO, isValid, eachDayOfInterval } from 'date-fns';
-import { CALORIE_FACTORS, NUTRIENT_METADATA } from './nutrientUtils';
+import { format, parseISO, isValid, eachDayOfInterval } from "date-fns";
+import { CALORIE_FACTORS, NUTRIENT_METADATA } from "./nutrientUtils.js";
 
 /**
  * Calculates daily average or total for a nutrient across log entries

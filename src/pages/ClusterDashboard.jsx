@@ -23,7 +23,7 @@ import {
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import axios from "axios";
-import Layout from "../components/Layout";
+import Layout from "../components/Layout.jsx";
 
 function formatTime(timestamp) {
   if (!timestamp) return "N/A";

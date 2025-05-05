@@ -22,9 +22,9 @@ import {
   Delete as DeleteIcon,
   SearchOff as SearchOffIcon,
 } from "@mui/icons-material";
-import Layout from "../components/Layout";
-import { useCompare } from "../contexts/CompareContext";
-import { NUTRIENT_CATEGORIES, NUTRIENT_METADATA } from "../utils/nutrientUtils";
+import Layout from "../components/Layout.jsx";
+import { useCompare } from "../contexts/CompareContext.jsx";
+import { NUTRIENT_CATEGORIES, NUTRIENT_METADATA } from "../utils/nutrientUtils.js";
 
 // Food placeholder image
 const FOOD_PLACEHOLDER = "/placeholder_feature_image.webp";

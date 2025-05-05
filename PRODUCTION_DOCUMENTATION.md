@@ -6,7 +6,7 @@ NutriByte Part 2 introduced several new features and infrastructure optimization
 
 ## Features and Infrastructure
 
-### 1. Distributed Systems Implementation (Node.js Clustering)
+### 1a. Distributed Systems Implementation (Node.js Clustering)
 
 NutriByte implements a distributed system architecture using Node.js clustering to maximize CPU utilization and improve application performance:
 
@@ -17,6 +17,15 @@ NutriByte implements a distributed system architecture using Node.js clustering 
 - **Request Tracking**: Records and displays which worker handles each request
 
 The cluster implementation can be toggled via the `ENABLE_CLUSTERING` environment variable, allowing for easy comparison between clustered and non-clustered performance.
+
+### 1b. Cluster Dashboard
+
+A real-time dashboard displaying the distributed system in action:
+
+- **Worker Status**: Shows active/inactive status for each worker
+- **Request Distribution**: Displays the number of requests handled by each worker
+- **Real-Time Updates**: Live updates via WebSocket connection
+- **Academic Explanation**: Detailed explanation of the clustering implementation suitable for academic review
 
 ### 2. Redis Caching
 
@@ -76,24 +85,16 @@ Allow users to export their food logs and analytics data to a CSV file:
 - **Export Functionality**: Export functionality is available in the analytics dashboard
 - **Export Trigger**: Export functionality is triggered by a button click
 
-## Interactive Features
+### 8. Performance Optimizations
 
-### 1. Cluster Dashboard
+The application implements several performance optimizations to ensure smooth operation and fast response times:
 
-A real-time dashboard displaying the distributed system in action:
-
-- **Worker Status**: Shows active/inactive status for each worker
-- **Request Distribution**: Displays the number of requests handled by each worker
-- **Real-Time Updates**: Live updates via WebSocket connection
-- **Academic Explanation**: Detailed explanation of the clustering implementation suitable for academic review
-
-### 2. Compare Items Functionality
-
-Enhanced compare functionality with improved reliability:
-
-- **Image Handling**: Reliable image rendering using `CardMedia` components
-- **State Management**: Context-based state management with localStorage persistence
-- **Error Handling**: Graceful handling of empty comparison lists and loading states
+- **Caching**: Caching is implemented using Redis to reduce the number of API calls and improve response times
+- **Server-Side Compression**: Server-side compression is implemented to improve initial page load times
+- **Asset Optimization**: Asset optimization is implemented to reduce the size of static assets
+    - Image conversion from .png to .webp
+    - Implemented significant compression, bundling, and minification of CSS and JavaScript files
+    - Lazy loading of non-critical assets
 
 ## Environment Variables
 

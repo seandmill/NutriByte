@@ -42,7 +42,6 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
   Edit as EditIcon,
-  Restaurant as RestaurantIcon,
   NoFood as NoFoodIcon,
   LocalFireDepartment as FireIcon,
   FitnessCenter as ProteinIcon,
@@ -50,9 +49,9 @@ import {
   Opacity as FatIcon,
   Grass as FiberIcon,
 } from "@mui/icons-material";
-import Layout from "../components/Layout";
-import { getFoodLogs, deleteFoodLog, updateFoodLog } from "../api/logApi";
-import { getUserConfig } from "../api/userApi";
+import Layout from "../components/Layout.jsx";
+import { getFoodLogs, deleteFoodLog, updateFoodLog } from "@clientApi/logApi.js";
+import { getUserConfig } from "@clientApi/userApi.js";
 
 // Default Daily Value reference amounts
 const DEFAULT_NUTRIENT_DV = {

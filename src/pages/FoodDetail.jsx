@@ -13,9 +13,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  List,
-  ListItem,
-  ListItemText,
   Card,
   CardContent,
   ListItemIcon,
@@ -35,17 +32,17 @@ import {
   Warning as WarningIcon,
 } from "@mui/icons-material";
 import * as MuiIcons from "@mui/icons-material";
-import Layout from "../components/Layout";
-import { getFoodDetails } from "../api/foodApi";
-import { getUserConfig } from "../api/userApi";
+import Layout from "../components/Layout.jsx";
+import { getFoodDetails } from "@clientApi/foodApi.js";
+import { getUserConfig } from "@clientApi/userApi.js";
 import {
   extractNutrients,
   formatNutrientValue,
   NUTRIENT_CATEGORIES,
   NUTRIENT_METADATA,
   CALORIE_FACTORS,
-} from "../utils/nutrientUtils";
-import { createFoodLog } from "../api/logApi";
+} from "../utils/nutrientUtils.js";
+import { createFoodLog } from "@clientApi/logApi.js";
 import { addDays, getDay, endOfWeek, eachDayOfInterval } from "date-fns";
 
 const getIcon = (iconName) => {
